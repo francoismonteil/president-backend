@@ -23,9 +23,7 @@ public class GameService {
 
     public Game createGame(List<String> playerNames) {
         Game game = new Game();
-        for (String name : playerNames) {
-            game.getPlayers().add(new Player(name));
-        }
+        playerNames.forEach(name -> game.getPlayers().add(new Player(name)));
         game.distributeCards();
         return gameRepository.save(game);
     }
@@ -43,21 +41,15 @@ public class GameService {
 
     public void playCard(Long gameId, Long playerId, Card card) {
         Game game = getGame(gameId);
-        if (!game.isValidMove(card)) {
-            throw new InvalidMoveException("Invalid move: " + card);
-        }
-        if (!game.getPlayers().get(game.getCurrentPlayerIndex()).getId().equals(playerId)) {
-            throw new NotPlayersTurnException(playerId);
-        }
+        validatePlayerTurn(game, playerId);
+        validateMove(game, card);
         game.playCard(playerId, card);
         gameRepository.save(game);
     }
 
     public void passTurn(Long gameId, Long playerId) {
         Game game = getGame(gameId);
-        if (!game.getPlayers().get(game.getCurrentPlayerIndex()).getId().equals(playerId)) {
-            throw new NotPlayersTurnException(playerId);
-        }
+        validatePlayerTurn(game, playerId);
         game.passTurn(playerId);
         gameRepository.save(game);
     }
@@ -65,5 +57,17 @@ public class GameService {
     public void saveGame(Long id) {
         Game game = getGame(id);
         gameRepository.save(game);
+    }
+
+    private void validatePlayerTurn(Game game, Long playerId) {
+        if (!game.getPlayers().get(game.getCurrentPlayerIndex()).getId().equals(playerId)) {
+            throw new NotPlayersTurnException(playerId);
+        }
+    }
+
+    private void validateMove(Game game, Card card) {
+        if (!game.isValidMove(card)) {
+            throw new InvalidMoveException("Invalid move: " + card);
+        }
     }
 }

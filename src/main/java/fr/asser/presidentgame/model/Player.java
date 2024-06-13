@@ -1,8 +1,11 @@
 package fr.asser.presidentgame.model;
 
 import jakarta.persistence.*;
+
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Entity
 public class Player {
@@ -14,7 +17,6 @@ public class Player {
     @OneToMany(cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Card> hand = new ArrayList<>();
 
-    // Default constructor required by JPA and for JSON deserialization
     public Player() {
     }
 
@@ -40,5 +42,13 @@ public class Player {
 
     public void playCard(Card card) {
         hand.remove(card);
+    }
+
+    public List<Card> getLowestCards(int count, Comparator<Card> comparator) {
+        return hand.stream().sorted(comparator).limit(count).collect(Collectors.toList());
+    }
+
+    public List<Card> getHighestCards(int count, Comparator<Card> comparator) {
+        return hand.stream().sorted(comparator.reversed()).limit(count).collect(Collectors.toList());
     }
 }

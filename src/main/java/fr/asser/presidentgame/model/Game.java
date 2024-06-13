@@ -107,37 +107,23 @@ public class Game {
         }
 
         if (president != null && trouduc != null) {
-            Card lowestCard1 = trouduc.getHand().stream().min(this::compareCards).orElse(null);
-            Card lowestCard2 = trouduc.getHand().stream().filter(card -> !card.equals(lowestCard1)).min(this::compareCards).orElse(null);
-
-            Card highestCard1 = president.getHand().stream().max(this::compareCards).orElse(null);
-            Card highestCard2 = president.getHand().stream().filter(card -> !card.equals(highestCard1)).max(this::compareCards).orElse(null);
-
-            if (lowestCard1 != null && lowestCard2 != null && highestCard1 != null && highestCard2 != null) {
-                trouduc.getHand().remove(lowestCard1);
-                trouduc.getHand().remove(lowestCard2);
-                president.getHand().add(lowestCard1);
-                president.getHand().add(lowestCard2);
-
-                president.getHand().remove(highestCard1);
-                president.getHand().remove(highestCard2);
-                trouduc.getHand().add(highestCard1);
-                trouduc.getHand().add(highestCard2);
-            }
+            exchangeCards(president, trouduc, 2);
         }
 
         if (vicePresident != null && viceTrouduc != null) {
-            Card lowestCard = viceTrouduc.getHand().stream().min(this::compareCards).orElse(null);
-            Card highestCard = vicePresident.getHand().stream().max(this::compareCards).orElse(null);
-
-            if (lowestCard != null && highestCard != null) {
-                viceTrouduc.getHand().remove(lowestCard);
-                vicePresident.getHand().add(lowestCard);
-
-                vicePresident.getHand().remove(highestCard);
-                viceTrouduc.getHand().add(highestCard);
-            }
+            exchangeCards(vicePresident, viceTrouduc, 1);
         }
+    }
+
+    private void exchangeCards(Player highRank, Player lowRank, int count) {
+        List<Card> lowRankCards = lowRank.getLowestCards(count, this::compareCards);
+        List<Card> highRankCards = highRank.getHighestCards(count, this::compareCards);
+
+        lowRank.getHand().removeAll(lowRankCards);
+        highRank.getHand().removeAll(highRankCards);
+
+        highRank.getHand().addAll(lowRankCards);
+        lowRank.getHand().addAll(highRankCards);
     }
 
     public void calculateRanks() {
