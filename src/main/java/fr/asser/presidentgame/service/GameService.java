@@ -8,6 +8,7 @@ import fr.asser.presidentgame.model.Game;
 import fr.asser.presidentgame.model.Player;
 import fr.asser.presidentgame.repository.GameRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -15,10 +16,12 @@ import java.util.List;
 @Service
 public class GameService {
     private final GameRepository gameRepository;
+    private final SimpMessagingTemplate messagingTemplate;
 
     @Autowired
-    public GameService(GameRepository gameRepository) {
+    public GameService(GameRepository gameRepository, SimpMessagingTemplate messagingTemplate) {
         this.gameRepository = gameRepository;
+        this.messagingTemplate = messagingTemplate;
     }
 
     public Game createGame(List<String> playerNames) {
@@ -36,7 +39,9 @@ public class GameService {
     public Game startGame(Long id) {
         Game game = getGame(id);
         game.redistributeCards();
-        return gameRepository.save(game);
+        Game updatedGame = gameRepository.save(game);
+        messagingTemplate.convertAndSend("/topic/gameState", updatedGame);
+        return updatedGame;
     }
 
     public void playCards(Long gameId, Long playerId, List<Card> cards) {
@@ -44,14 +49,16 @@ public class GameService {
         validatePlayerTurn(game, playerId);
         validateMove(game, cards);
         game.playCards(playerId, cards);
-        gameRepository.save(game);
+        Game updatedGame = gameRepository.save(game);
+        messagingTemplate.convertAndSend("/topic/gameState", updatedGame);
     }
 
     public void passTurn(Long gameId, Long playerId) {
         Game game = getGame(gameId);
         validatePlayerTurn(game, playerId);
         game.passTurn(playerId);
-        gameRepository.save(game);
+        Game updatedGame = gameRepository.save(game);
+        messagingTemplate.convertAndSend("/topic/gameState", updatedGame);
     }
 
     public void saveGame(Long id) {
