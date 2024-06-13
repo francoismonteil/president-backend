@@ -5,7 +5,9 @@ import fr.asser.presidentgame.exception.InvalidMoveException;
 import fr.asser.presidentgame.exception.NotPlayersTurnException;
 import fr.asser.presidentgame.model.Card;
 import fr.asser.presidentgame.model.Game;
+import fr.asser.presidentgame.model.GameLog;
 import fr.asser.presidentgame.model.Player;
+import fr.asser.presidentgame.repository.GameLogRepository;
 import fr.asser.presidentgame.repository.GameRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
@@ -16,11 +18,13 @@ import java.util.List;
 @Service
 public class GameService {
     private final GameRepository gameRepository;
+    private final GameLogRepository gameLogRepository;
     private final SimpMessagingTemplate messagingTemplate;
 
     @Autowired
-    public GameService(GameRepository gameRepository, SimpMessagingTemplate messagingTemplate) {
+    public GameService(GameRepository gameRepository, GameLogRepository gameLogRepository, SimpMessagingTemplate messagingTemplate) {
         this.gameRepository = gameRepository;
+        this.gameLogRepository = gameLogRepository;
         this.messagingTemplate = messagingTemplate;
     }
 
@@ -41,6 +45,7 @@ public class GameService {
         game.redistributeCards();
         Game updatedGame = gameRepository.save(game);
         messagingTemplate.convertAndSend("/topic/gameState", updatedGame);
+        logAction(game.getId(), null, "Game started");
         return updatedGame;
     }
 
@@ -51,6 +56,7 @@ public class GameService {
         game.playCards(playerId, cards);
         Game updatedGame = gameRepository.save(game);
         messagingTemplate.convertAndSend("/topic/gameState", updatedGame);
+        logAction(gameId, playerId, "Played cards: " + cards);
     }
 
     public void passTurn(Long gameId, Long playerId) {
@@ -59,12 +65,14 @@ public class GameService {
         game.passTurn(playerId);
         Game updatedGame = gameRepository.save(game);
         messagingTemplate.convertAndSend("/topic/gameState", updatedGame);
+        logAction(gameId, playerId, "Passed turn");
     }
 
     public void saveGame(Long id) {
         Game game = getGame(id);
         game.setSaved(true);
         gameRepository.save(game);
+        logAction(id, null, "Game saved");
     }
 
     public List<Game> loadSavedGames() {
@@ -81,5 +89,10 @@ public class GameService {
         if (!game.isValidMove(cards)) {
             throw new InvalidMoveException("Invalid move: " + cards);
         }
+    }
+
+    private void logAction(Long gameId, Long playerId, String action) {
+        GameLog log = new GameLog(gameId, playerId, action);
+        gameLogRepository.save(log);
     }
 }
