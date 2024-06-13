@@ -72,7 +72,7 @@ public class GameService {
 
     public void saveGame(Long id) {
         Game game = getGame(id);
-        game.setSaved(true);
+        game.setIsSaved(true);
         gameRepository.save(game);
         logAction(id, null, "Game saved");
     }

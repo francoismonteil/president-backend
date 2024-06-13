@@ -29,18 +29,19 @@ public class Game {
     @Column(name = "rank")
     private Map<Player, Integer> ranks = new HashMap<>();
 
-    private boolean isSaved = false;
+    @Column(nullable = false)
+    private Boolean isSaved = false;
 
     public Game() {
         initializeDeck();
     }
 
-    public boolean isSaved() {
+    public Boolean getIsSaved() {
         return isSaved;
     }
 
-    public void setSaved(boolean saved) {
-        isSaved = saved;
+    public void setIsSaved(Boolean isSaved) {
+        this.isSaved = isSaved;
     }
 
     private void initializeDeck() {
