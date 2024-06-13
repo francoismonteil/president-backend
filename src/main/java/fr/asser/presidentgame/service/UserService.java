@@ -1,6 +1,6 @@
 package fr.asser.presidentgame.service;
 
-import fr.asser.presidentgame.model.User;
+import fr.asser.presidentgame.model.AppUser;
 import fr.asser.presidentgame.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -17,14 +17,14 @@ public class UserService {
         this.passwordEncoder = passwordEncoder;
     }
 
-    public User registerUser(String username, String password) {
-        User user = new User();
-        user.setUsername(username);
-        user.setPassword(passwordEncoder.encode(password));
-        return userRepository.save(user);
+    public AppUser registerUser(String username, String password) {
+        AppUser appUser = new AppUser();
+        appUser.setUsername(username);
+        appUser.setPassword(passwordEncoder.encode(password));
+        return userRepository.save(appUser);
     }
 
-    public User findByUsername(String username) {
+    public AppUser findByUsername(String username) {
         return userRepository.findByUsername(username).orElse(null);
     }
 }

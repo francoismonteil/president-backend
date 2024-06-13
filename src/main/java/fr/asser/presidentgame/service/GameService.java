@@ -100,11 +100,11 @@ public class GameService {
     }
 
     private void validateUserAccess(Game game) {
-        User currentUser = getCurrentUser();
+        AppUser currentAppUser = getCurrentUser();
         // Add logic to validate if the current user has access to the game
     }
 
-    private User getCurrentUser() {
+    private AppUser getCurrentUser() {
         Object principal = SecurityContextHolder.getContext().getAuthentication().getPrincipal();
         if (principal instanceof UserDetails) {
             String username = ((UserDetails) principal).getUsername();

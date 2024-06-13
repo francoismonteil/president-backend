@@ -1,6 +1,6 @@
 package fr.asser.presidentgame.controller;
 
-import fr.asser.presidentgame.model.User;
+import fr.asser.presidentgame.model.AppUser;
 import fr.asser.presidentgame.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
@@ -16,7 +16,7 @@ public class AuthController {
     }
 
     @PostMapping("/register")
-    public User register(@RequestBody User user) {
-        return userService.registerUser(user.getUsername(), user.getPassword());
+    public AppUser register(@RequestBody AppUser appUser) {
+        return userService.registerUser(appUser.getUsername(), appUser.getPassword());
     }
 }
