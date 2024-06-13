@@ -3,15 +3,15 @@ package fr.asser.presidentgame.service;
 import fr.asser.presidentgame.exception.GameNotFoundException;
 import fr.asser.presidentgame.exception.InvalidMoveException;
 import fr.asser.presidentgame.exception.NotPlayersTurnException;
-import fr.asser.presidentgame.model.Card;
-import fr.asser.presidentgame.model.Game;
-import fr.asser.presidentgame.model.GameLog;
-import fr.asser.presidentgame.model.Player;
+import fr.asser.presidentgame.model.*;
 import fr.asser.presidentgame.repository.GameLogRepository;
 import fr.asser.presidentgame.repository.GameRepository;
+import fr.asser.presidentgame.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -20,12 +20,14 @@ import java.util.List;
 public class GameService {
     private final GameRepository gameRepository;
     private final GameLogRepository gameLogRepository;
+    private final UserRepository userRepository;
     private final SimpMessagingTemplate messagingTemplate;
 
     @Autowired
-    public GameService(GameRepository gameRepository, GameLogRepository gameLogRepository, SimpMessagingTemplate messagingTemplate) {
+    public GameService(GameRepository gameRepository, GameLogRepository gameLogRepository, UserRepository userRepository, SimpMessagingTemplate messagingTemplate) {
         this.gameRepository = gameRepository;
         this.gameLogRepository = gameLogRepository;
+        this.userRepository = userRepository;
         this.messagingTemplate = messagingTemplate;
     }
 
@@ -44,15 +46,17 @@ public class GameService {
 
     public Game startGame(Long id) {
         Game game = getGame(id);
+        validateUserAccess(game);
         game.redistributeCards();
         Game updatedGame = gameRepository.save(game);
         messagingTemplate.convertAndSend("/topic/gameState", updatedGame);
-        logAction(game.getId(), null, "Game started");
+        logAction(game.getId(), getCurrentUser().getId(), "Game started");
         return updatedGame;
     }
 
     public void playCards(Long gameId, Long playerId, List<Card> cards) {
         Game game = getGame(gameId);
+        validateUserAccess(game);
         validatePlayerTurn(game, playerId);
         validateMove(game, cards);
         game.playCards(playerId, cards);
@@ -63,6 +67,7 @@ public class GameService {
 
     public void passTurn(Long gameId, Long playerId) {
         Game game = getGame(gameId);
+        validateUserAccess(game);
         validatePlayerTurn(game, playerId);
         game.passTurn(playerId);
         Game updatedGame = gameRepository.save(game);
@@ -72,9 +77,10 @@ public class GameService {
 
     public void saveGame(Long id) {
         Game game = getGame(id);
+        validateUserAccess(game);
         game.setIsSaved(true);
         gameRepository.save(game);
-        logAction(id, null, "Game saved");
+        logAction(id, getCurrentUser().getId(), "Game saved");
     }
 
     public List<Game> loadSavedGames() {
@@ -91,6 +97,20 @@ public class GameService {
         if (!game.isValidMove(cards)) {
             throw new InvalidMoveException("Invalid move: " + cards);
         }
+    }
+
+    private void validateUserAccess(Game game) {
+        User currentUser = getCurrentUser();
+        // Add logic to validate if the current user has access to the game
+    }
+
+    private User getCurrentUser() {
+        Object principal = SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        if (principal instanceof UserDetails) {
+            String username = ((UserDetails) principal).getUsername();
+            return userRepository.findByUsername(username).orElse(null);
+        }
+        return null;
     }
 
     private void logAction(Long gameId, Long playerId, String action) {
