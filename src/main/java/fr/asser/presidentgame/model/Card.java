@@ -1,5 +1,6 @@
 package fr.asser.presidentgame.model;
 
+import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
@@ -12,10 +13,16 @@ import java.util.List;
 public class Card {
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
+    @Schema(description = "Unique identifier of the card", example = "1")
     private Long id;
+
+    @Schema(description = "Suit of the card", example = "Hearts")
     private String suit;
+
+    @Schema(description = "Rank of the card", example = "A")
     private String rank;
 
+    // Default constructor required by JPA and for JSON deserialization
     public Card() {
     }
 
