@@ -56,7 +56,12 @@ public class GameService {
 
     public void saveGame(Long id) {
         Game game = getGame(id);
+        game.setSaved(true);
         gameRepository.save(game);
+    }
+
+    public List<Game> loadSavedGames() {
+        return gameRepository.findAllByIsSaved(true);
     }
 
     private void validatePlayerTurn(Game game, Long playerId) {

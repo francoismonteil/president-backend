@@ -54,4 +54,9 @@ public class GameController {
         gameService.saveGame(id);
         return ResponseEntity.ok().build();
     }
+
+    @GetMapping("/saved")
+    public List<Game> loadSavedGames() {
+        return gameService.loadSavedGames();
+    }
 }
