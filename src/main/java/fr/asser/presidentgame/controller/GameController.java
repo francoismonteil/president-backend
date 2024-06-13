@@ -4,6 +4,7 @@ import fr.asser.presidentgame.model.Card;
 import fr.asser.presidentgame.model.Game;
 import fr.asser.presidentgame.service.GameService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -46,5 +47,11 @@ public class GameController {
     @GetMapping("/{id}/state")
     public Game getGameState(@PathVariable Long id) {
         return gameService.getGame(id);
+    }
+
+    @PostMapping("/{id}/save")
+    public ResponseEntity<Void> saveGame(@PathVariable Long id) {
+        gameService.saveGame(id);
+        return ResponseEntity.ok().build();
     }
 }

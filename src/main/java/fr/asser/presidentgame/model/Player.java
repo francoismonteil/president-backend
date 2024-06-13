@@ -9,10 +9,14 @@ public class Player {
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
     private Long id;
-    private final String name;
+    private String name;
 
     @OneToMany(cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Card> hand = new ArrayList<>();
+
+    // Default constructor required by JPA and for JSON deserialization
+    public Player() {
+    }
 
     public Player(String name) {
         this.name = name;

@@ -1,5 +1,8 @@
 package fr.asser.presidentgame.service;
 
+import fr.asser.presidentgame.exception.GameNotFoundException;
+import fr.asser.presidentgame.exception.InvalidMoveException;
+import fr.asser.presidentgame.exception.NotPlayersTurnException;
 import fr.asser.presidentgame.model.Card;
 import fr.asser.presidentgame.model.Game;
 import fr.asser.presidentgame.model.Player;
@@ -29,24 +32,38 @@ public class GameService {
 
     public Game getGame(Long id) {
         return gameRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Game not found"));
+                .orElseThrow(() -> new GameNotFoundException(id));
     }
 
     public Game startGame(Long id) {
         Game game = getGame(id);
-        // Logic to start the game
+        game.redistributeCards();
         return gameRepository.save(game);
     }
 
     public void playCard(Long gameId, Long playerId, Card card) {
         Game game = getGame(gameId);
+        if (!game.isValidMove(card)) {
+            throw new InvalidMoveException("Invalid move: " + card);
+        }
+        if (!game.getPlayers().get(game.getCurrentPlayerIndex()).getId().equals(playerId)) {
+            throw new NotPlayersTurnException(playerId);
+        }
         game.playCard(playerId, card);
         gameRepository.save(game);
     }
 
     public void passTurn(Long gameId, Long playerId) {
         Game game = getGame(gameId);
+        if (!game.getPlayers().get(game.getCurrentPlayerIndex()).getId().equals(playerId)) {
+            throw new NotPlayersTurnException(playerId);
+        }
         game.passTurn(playerId);
+        gameRepository.save(game);
+    }
+
+    public void saveGame(Long id) {
+        Game game = getGame(id);
         gameRepository.save(game);
     }
 }

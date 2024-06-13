@@ -1,14 +1,21 @@
 package fr.asser.presidentgame.model;
 
-import jakarta.persistence.*;
+import jakarta.persistence.Entity;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
 
 @Entity
 public class Card {
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
     private Long id;
-    private final String suit;
-    private final String rank;
+    private String suit;
+    private String rank;
+
+    // Default constructor required by JPA and for JSON deserialization
+    public Card() {
+    }
 
     public Card(String suit, String rank) {
         this.suit = suit;
