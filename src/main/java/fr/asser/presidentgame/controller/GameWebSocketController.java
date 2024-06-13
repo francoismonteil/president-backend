@@ -3,7 +3,6 @@ package fr.asser.presidentgame.controller;
 import fr.asser.presidentgame.model.Game;
 import fr.asser.presidentgame.model.GameMove;
 import fr.asser.presidentgame.service.GameService;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.messaging.handler.annotation.MessageMapping;
 import org.springframework.messaging.handler.annotation.SendTo;
 import org.springframework.stereotype.Controller;
@@ -13,7 +12,6 @@ public class GameWebSocketController {
 
     private final GameService gameService;
 
-    @Autowired
     public GameWebSocketController(GameService gameService) {
         this.gameService = gameService;
     }

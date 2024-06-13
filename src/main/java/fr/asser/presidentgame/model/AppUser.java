@@ -24,6 +24,14 @@ public class AppUser {
     @Schema(description = "Roles assigned to the user", example = "[\"ROLE_USER\", \"ROLE_ADMIN\"]")
     private Set<String> roles = new HashSet<>();
 
+    public AppUser() {}
+
+    public AppUser(String username, String password, Set<String> roles) {
+        this.username = username;
+        this.password = password;
+        this.roles = roles;
+    }
+
     public Long getId() {
         return id;
     }

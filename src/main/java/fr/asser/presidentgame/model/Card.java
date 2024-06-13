@@ -22,9 +22,7 @@ public class Card {
     @Schema(description = "Rank of the card", example = "A")
     private String rank;
 
-    // Default constructor required by JPA and for JSON deserialization
-    public Card() {
-    }
+    public Card() {}
 
     public Card(String suit, String rank) {
         this.suit = suit;
