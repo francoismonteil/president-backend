@@ -1,7 +1,10 @@
 package fr.asser.presidentgame.model;
 
-import jakarta.persistence.*;
 import io.swagger.v3.oas.annotations.media.Schema;
+import jakarta.persistence.*;
+
+import java.util.HashSet;
+import java.util.Set;
 
 @Entity
 @Schema(description = "User entity representing a player")
@@ -16,6 +19,10 @@ public class AppUser {
 
     @Schema(description = "Password of the user", example = "password123")
     private String password;
+
+    @ElementCollection(fetch = FetchType.EAGER)
+    @Schema(description = "Roles assigned to the user", example = "[\"ROLE_USER\", \"ROLE_ADMIN\"]")
+    private Set<String> roles = new HashSet<>();
 
     public Long getId() {
         return id;
@@ -39,5 +46,13 @@ public class AppUser {
 
     public void setPassword(String password) {
         this.password = password;
+    }
+
+    public Set<String> getRoles() {
+        return roles;
+    }
+
+    public void setRoles(Set<String> roles) {
+        this.roles = roles;
     }
 }

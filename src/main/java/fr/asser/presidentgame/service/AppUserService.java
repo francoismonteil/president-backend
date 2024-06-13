@@ -1,30 +1,37 @@
 package fr.asser.presidentgame.service;
 
 import fr.asser.presidentgame.model.AppUser;
-import fr.asser.presidentgame.repository.UserRepository;
+import fr.asser.presidentgame.repository.AppUserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
+import java.util.Set;
+
 @Service
 public class AppUserService {
-    private final UserRepository userRepository;
+    private final AppUserRepository appUserRepository;
     private final PasswordEncoder passwordEncoder;
 
     @Autowired
-    public AppUserService(UserRepository userRepository, PasswordEncoder passwordEncoder) {
-        this.userRepository = userRepository;
+    public AppUserService(AppUserRepository appUserRepository, PasswordEncoder passwordEncoder) {
+        this.appUserRepository = appUserRepository;
         this.passwordEncoder = passwordEncoder;
     }
 
-    public AppUser registerUser(String username, String password) {
-        AppUser appUser = new AppUser();
-        appUser.setUsername(username);
-        appUser.setPassword(passwordEncoder.encode(password));
-        return userRepository.save(appUser);
+    public AppUser registerUser(String username, String password, Set<String> roles) {
+        AppUser user = new AppUser();
+        user.setUsername(username);
+        user.setPassword(passwordEncoder.encode(password));
+        user.setRoles(roles);
+        return appUserRepository.save(user);
     }
 
     public AppUser findByUsername(String username) {
-        return userRepository.findByUsername(username).orElse(null);
+        return appUserRepository.findByUsername(username).orElse(null);
+    }
+
+    public boolean existsByUsername(String username) {
+        return appUserRepository.findByUsername(username).isPresent();
     }
 }

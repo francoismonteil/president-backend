@@ -6,7 +6,7 @@ import fr.asser.presidentgame.exception.NotPlayersTurnException;
 import fr.asser.presidentgame.model.*;
 import fr.asser.presidentgame.repository.GameLogRepository;
 import fr.asser.presidentgame.repository.GameRepository;
-import fr.asser.presidentgame.repository.UserRepository;
+import fr.asser.presidentgame.repository.AppUserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
@@ -20,11 +20,11 @@ import java.util.List;
 public class GameService {
     private final GameRepository gameRepository;
     private final GameLogRepository gameLogRepository;
-    private final UserRepository userRepository;
+    private final AppUserRepository userRepository;
     private final SimpMessagingTemplate messagingTemplate;
 
     @Autowired
-    public GameService(GameRepository gameRepository, GameLogRepository gameLogRepository, UserRepository userRepository, SimpMessagingTemplate messagingTemplate) {
+    public GameService(GameRepository gameRepository, GameLogRepository gameLogRepository, AppUserRepository userRepository, SimpMessagingTemplate messagingTemplate) {
         this.gameRepository = gameRepository;
         this.gameLogRepository = gameLogRepository;
         this.userRepository = userRepository;

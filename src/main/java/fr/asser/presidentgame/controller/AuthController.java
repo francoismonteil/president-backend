@@ -42,7 +42,7 @@ public class AuthController {
     })
     @PostMapping("/register")
     public String register(@RequestBody AppUser user, Locale locale) {
-        appUserService.registerUser(user.getUsername(), user.getPassword());
+        appUserService.registerUser(user.getUsername(), user.getPassword(), null);
         return messageSource.getMessage("user.registered", null, locale);
     }
 }
