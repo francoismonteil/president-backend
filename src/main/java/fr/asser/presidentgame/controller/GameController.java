@@ -35,8 +35,8 @@ public class GameController {
     }
 
     @PostMapping("/{gameId}/play")
-    public void playCard(@PathVariable Long gameId, @RequestParam Long playerId, @RequestBody Card card) {
-        gameService.playCard(gameId, playerId, card);
+    public void playCards(@PathVariable Long gameId, @RequestParam Long playerId, @RequestBody List<Card> cards) {
+        gameService.playCards(gameId, playerId, cards);
     }
 
     @PostMapping("/{gameId}/pass")

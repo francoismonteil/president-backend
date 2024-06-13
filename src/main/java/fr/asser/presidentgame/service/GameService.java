@@ -39,11 +39,11 @@ public class GameService {
         return gameRepository.save(game);
     }
 
-    public void playCard(Long gameId, Long playerId, Card card) {
+    public void playCards(Long gameId, Long playerId, List<Card> cards) {
         Game game = getGame(gameId);
         validatePlayerTurn(game, playerId);
-        validateMove(game, card);
-        game.playCard(playerId, card);
+        validateMove(game, cards);
+        game.playCards(playerId, cards);
         gameRepository.save(game);
     }
 
@@ -70,9 +70,9 @@ public class GameService {
         }
     }
 
-    private void validateMove(Game game, Card card) {
-        if (!game.isValidMove(card)) {
-            throw new InvalidMoveException("Invalid move: " + card);
+    private void validateMove(Game game, List<Card> cards) {
+        if (!game.isValidMove(cards)) {
+            throw new InvalidMoveException("Invalid move: " + cards);
         }
     }
 }

@@ -66,33 +66,42 @@ public class Game {
         }
     }
 
-    private int compareCards(Card card1, Card card2) {
-        List<String> ranks = Arrays.asList("3", "4", "5", "6", "7", "8", "9", "10", "J", "Q", "K", "A", "2");
-        return Integer.compare(ranks.indexOf(card1.getRank()), ranks.indexOf(card2.getRank()));
-    }
-
-    public void playCard(Long playerId, Card card) {
+    public void playCards(Long playerId, List<Card> cards) {
         Player currentPlayer = players.get(currentPlayerIndex);
         if (!currentPlayer.getId().equals(playerId)) {
             throw new NotPlayersTurnException(playerId);
         }
-        if (!isValidMove(card)) {
-            throw new InvalidMoveException("Invalid move: " + card);
+        if (!isValidMove(cards)) {
+            throw new InvalidMoveException("Invalid move: " + cards);
         }
-        currentPlayer.playCard(card);
-        playedCards.add(card);
+        cards.forEach(currentPlayer::playCard);
+        playedCards.addAll(cards);
         if (currentPlayer.getHand().isEmpty()) {
             ranks.put(currentPlayer, ranks.size() + 1);
         }
         currentPlayerIndex = (currentPlayerIndex + 1) % players.size();
     }
 
-    public boolean isValidMove(Card card) {
+    public boolean isValidMove(List<Card> cards) {
         if (playedCards.isEmpty()) {
             return true;
         }
-        Card lastPlayedCard = playedCards.get(playedCards.size() - 1);
-        return compareCards(card, lastPlayedCard) > 0;
+        if (!Card.areSameRank(cards) && !Card.isSequence(cards)) {
+            return false;
+        }
+        List<Card> lastPlayed = getLastPlayedCards(cards.size());
+        if (Card.areSameRank(cards) && !Card.areSameRank(lastPlayed)) {
+            return false;
+        }
+        if (Card.isSequence(cards) && !Card.isSequence(lastPlayed)) {
+            return false;
+        }
+        return Card.compareRank(cards.get(0), lastPlayed.get(0)) > 0;
+    }
+
+    private List<Card> getLastPlayedCards(int count) {
+        int startIndex = Math.max(playedCards.size() - count, 0);
+        return playedCards.subList(startIndex, playedCards.size());
     }
 
     public void passTurn(Long playerId) {
@@ -126,8 +135,8 @@ public class Game {
     }
 
     private void exchangeCards(Player highRank, Player lowRank, int count) {
-        List<Card> lowRankCards = lowRank.getLowestCards(count, this::compareCards);
-        List<Card> highRankCards = highRank.getHighestCards(count, this::compareCards);
+        List<Card> lowRankCards = lowRank.getLowestCards(count, Card::compareRank);
+        List<Card> highRankCards = highRank.getHighestCards(count, Card::compareRank);
 
         lowRank.getHand().removeAll(lowRankCards);
         highRank.getHand().removeAll(highRankCards);
