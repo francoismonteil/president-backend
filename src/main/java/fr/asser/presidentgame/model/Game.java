@@ -12,13 +12,13 @@ public class Game {
     @GeneratedValue(strategy = GenerationType.AUTO)
     private Long id;
 
-    @OneToMany(cascade = CascadeType.ALL, orphanRemoval = true)
+    @OneToMany(cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
     private List<Player> players = new ArrayList<>();
 
-    @OneToMany(cascade = CascadeType.ALL, orphanRemoval = true)
+    @OneToMany(cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
     private List<Card> deck = new ArrayList<>();
 
-    @OneToMany(cascade = CascadeType.ALL, orphanRemoval = true)
+    @OneToMany(cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
     private List<Card> playedCards = new ArrayList<>();
 
     private int currentPlayerIndex = 0;
@@ -56,11 +56,11 @@ public class Game {
 
     public void distributeCards() {
         int playerCount = players.size();
-        int cardIndex = 0;
-        while (cardIndex < deck.size()) {
+        Iterator<Card> deckIterator = deck.iterator();
+        while (deckIterator.hasNext()) {
             for (Player player : players) {
-                if (cardIndex < deck.size()) {
-                    player.getHand().add(deck.get(cardIndex++));
+                if (deckIterator.hasNext()) {
+                    player.getHand().add(deckIterator.next());
                 }
             }
         }
@@ -113,17 +113,15 @@ public class Game {
     }
 
     public void redistributeCards() {
-        Player president = null;
-        Player vicePresident = null;
-        Player trouduc = null;
-        Player viceTrouduc = null;
-
+        Map<Integer, Player> rankToPlayer = new HashMap<>();
         for (Map.Entry<Player, Integer> entry : ranks.entrySet()) {
-            if (entry.getValue() == 1) president = entry.getKey();
-            else if (entry.getValue() == 2) vicePresident = entry.getKey();
-            else if (entry.getValue() == players.size()) trouduc = entry.getKey();
-            else if (entry.getValue() == players.size() - 1) viceTrouduc = entry.getKey();
+            rankToPlayer.put(entry.getValue(), entry.getKey());
         }
+
+        Player president = rankToPlayer.get(1);
+        Player vicePresident = rankToPlayer.get(2);
+        Player trouduc = rankToPlayer.get(players.size());
+        Player viceTrouduc = rankToPlayer.get(players.size() - 1);
 
         if (president != null && trouduc != null) {
             exchangeCards(president, trouduc, 2);

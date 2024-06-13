@@ -10,6 +10,7 @@ import fr.asser.presidentgame.model.Player;
 import fr.asser.presidentgame.repository.GameLogRepository;
 import fr.asser.presidentgame.repository.GameRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Service;
 
@@ -35,8 +36,9 @@ public class GameService {
         return gameRepository.save(game);
     }
 
+    @Cacheable("games")
     public Game getGame(Long id) {
-        return gameRepository.findById(id)
+        return gameRepository.findByIdWithAssociations(id)
                 .orElseThrow(() -> new GameNotFoundException(id));
     }
 
