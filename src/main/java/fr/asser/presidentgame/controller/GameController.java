@@ -4,24 +4,29 @@ import fr.asser.presidentgame.model.Card;
 import fr.asser.presidentgame.model.Game;
 import fr.asser.presidentgame.service.GameService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.MessageSource;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Locale;
 
 @RestController
 @RequestMapping("/api/games")
 public class GameController {
     private final GameService gameService;
+    private final MessageSource messageSource;
 
     @Autowired
-    public GameController(GameService gameService) {
+    public GameController(GameService gameService, MessageSource messageSource) {
         this.gameService = gameService;
+        this.messageSource = messageSource;
     }
 
     @PostMapping
-    public Game createGame(@RequestBody List<String> playerNames) {
-        return gameService.createGame(playerNames);
+    public String createGame(@RequestBody List<String> playerNames, Locale locale) {
+        gameService.createGame(playerNames);
+        return messageSource.getMessage("game.created", null, locale);
     }
 
     @GetMapping("/{id}")
