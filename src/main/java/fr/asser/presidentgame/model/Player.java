@@ -1,5 +1,6 @@
 package fr.asser.presidentgame.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 
 import java.util.ArrayList;
@@ -15,7 +16,12 @@ public class Player {
     private String name;
 
     @OneToMany(cascade = CascadeType.ALL, orphanRemoval = true)
+    @JsonIgnore
     private List<Card> hand = new ArrayList<>();
+
+    @ManyToOne
+    @JsonIgnore
+    private Game game;
 
     public Player() {
     }
@@ -50,5 +56,13 @@ public class Player {
 
     public List<Card> getHighestCards(int count, Comparator<Card> comparator) {
         return hand.stream().sorted(comparator.reversed()).limit(count).collect(Collectors.toList());
+    }
+
+    public void setGame(Game game) {
+        this.game = game;
+    }
+
+    public Game getGame() {
+        return game;
     }
 }

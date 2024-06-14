@@ -17,9 +17,9 @@ public class AppUserService {
         this.passwordEncoder = passwordEncoder;
     }
 
-    public AppUser registerUser(String username, String password, Set<String> roles) {
+    public void registerUser(String username, String password, Set<String> roles) {
         AppUser user = new AppUser(username, passwordEncoder.encode(password), roles);
-        return appUserRepository.save(user);
+        appUserRepository.save(user);
     }
 
     public AppUser findByUsername(String username) {

@@ -1,5 +1,6 @@
 package fr.asser.presidentgame.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import fr.asser.presidentgame.exception.InvalidMoveException;
 import fr.asser.presidentgame.exception.NotPlayersTurnException;
 import jakarta.persistence.*;
@@ -12,7 +13,7 @@ public class Game {
     @GeneratedValue(strategy = GenerationType.AUTO)
     private Long id;
 
-    @OneToMany(cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
+    @OneToMany(cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY, mappedBy = "game")
     private List<Player> players = new ArrayList<>();
 
     @OneToMany(cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
@@ -27,6 +28,7 @@ public class Game {
     @CollectionTable(name = "player_ranks", joinColumns = @JoinColumn(name = "game_id"))
     @MapKeyJoinColumn(name = "player_id")
     @Column(name = "rank")
+    @JsonIgnore
     private Map<Player, Integer> ranks = new HashMap<>();
 
     @Column(nullable = false)

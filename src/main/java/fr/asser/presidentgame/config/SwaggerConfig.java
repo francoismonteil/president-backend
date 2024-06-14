@@ -17,6 +17,8 @@ public class SwaggerConfig {
                 .addSecurityItem(new SecurityRequirement().addList("basicAuth"))
                 .components(new io.swagger.v3.oas.models.Components()
                         .addSecuritySchemes("basicAuth",
-                                new SecurityScheme().type(SecurityScheme.Type.HTTP).scheme("basic")));
+                                new SecurityScheme().type(SecurityScheme.Type.HTTP).scheme("basic"))
+                        .addSecuritySchemes("bearerAuth",
+                                new SecurityScheme().type(SecurityScheme.Type.HTTP).scheme("bearer").bearerFormat("JWT")));
     }
 }
