@@ -12,6 +12,20 @@ public class GameLog {
     private Long playerId;
     private String action;
     private LocalDateTime timestamp;
+    private String playerName;
+    private String gameStateBefore;
+    private String gameStateAfter;
+
+    public GameLog(Long gameId, Long playerId, String action, String playerName, String gameStateBefore,
+                   String gameStateAfter) {
+        this.gameId = gameId;
+        this.playerId = playerId;
+        this.action = action;
+        this.playerName = playerName;
+        this.gameStateBefore = gameStateBefore;
+        this.gameStateAfter = gameStateAfter;
+        this.timestamp = LocalDateTime.now();
+    }
 
     public GameLog() {
     }
@@ -41,5 +55,29 @@ public class GameLog {
 
     public LocalDateTime getTimestamp() {
         return timestamp;
+    }
+
+    public String getPlayerName() {
+        return playerName;
+    }
+
+    public void setPlayerName(String playerName) {
+        this.playerName = playerName;
+    }
+
+    public String getGameStateBefore() {
+        return gameStateBefore;
+    }
+
+    public void setGameStateBefore(String gameStateBefore) {
+        this.gameStateBefore = gameStateBefore;
+    }
+
+    public String getGameStateAfter() {
+        return gameStateAfter;
+    }
+
+    public void setGameStateAfter(String gameStateAfter) {
+        this.gameStateAfter = gameStateAfter;
     }
 }
