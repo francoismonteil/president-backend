@@ -96,17 +96,19 @@ public class Game {
         if (playedCards.isEmpty()) {
             return true;
         }
-        if (!Card.areSameRank(cards) && !Card.isSequence(cards)) {
-            return false;
-        }
+        return isSameRankMove(cards) || isSequenceMove(cards);
+    }
+
+    private boolean isSameRankMove(List<Card> cards) {
         List<Card> lastPlayed = getLastPlayedCards(cards.size());
-        if (Card.areSameRank(cards) && !Card.areSameRank(lastPlayed)) {
-            return false;
-        }
-        if (Card.isSequence(cards) && !Card.isSequence(lastPlayed)) {
-            return false;
-        }
-        return Card.compareRank(cards.get(0), lastPlayed.get(0)) > 0;
+        return Card.areSameRank(cards) && Card.areSameRank(lastPlayed) &&
+                Card.compareRank(cards.get(0), lastPlayed.get(0)) > 0;
+    }
+
+    private boolean isSequenceMove(List<Card> cards) {
+        List<Card> lastPlayed = getLastPlayedCards(cards.size());
+        return Card.isSequence(cards) && Card.isSequence(lastPlayed) &&
+                Card.compareRank(cards.get(0), lastPlayed.get(0)) > 0;
     }
 
     private List<Card> getLastPlayedCards(int count) {
