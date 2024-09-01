@@ -43,6 +43,7 @@ public class GameService {
         return gameRepository.findByIdWithAssociations(id).orElseThrow(() -> new GameNotFoundException(id));
     }
 
+
     public Game startGame(Long id) {
         Game game = getGame(id);
         validateUserAccess(game);
@@ -55,13 +56,17 @@ public class GameService {
 
     public void playCards(Long gameId, Long playerId, List<Card> cards) {
         Game game = getGame(gameId);
-        validateUserAccess(game);
-        validatePlayerTurn(game, playerId);
-        validateMove(game, cards);
+        validatePlayerMove(game, playerId, cards);
         game.playCards(playerId, cards);
         Game updatedGame = gameRepository.save(game);
         messagingTemplate.convertAndSend("/topic/gameState", updatedGame);
         logAction(gameId, playerId, "Played cards: " + cards);
+    }
+
+    private void validatePlayerMove(Game game, Long playerId, List<Card> cards) {
+        validateUserAccess(game);
+        validatePlayerTurn(game, playerId);
+        validateMove(game, cards);
     }
 
     public void passTurn(Long gameId, Long playerId) {
