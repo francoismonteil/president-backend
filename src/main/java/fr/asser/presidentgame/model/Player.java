@@ -46,8 +46,16 @@ public class Player {
         this.hand = hand;
     }
 
-    public void playCard(Card card) {
+    public void addCardToHand(Card card) {
+        hand.add(card);
+    }
+
+    public void removeCardFromHand(Card card) {
         hand.remove(card);
+    }
+
+    public void playCard(Card card) {
+        removeCardFromHand(card);
     }
 
     public List<Card> getSortedCards(int count, Comparator<Card> comparator, boolean ascending) {
