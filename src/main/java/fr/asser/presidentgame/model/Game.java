@@ -125,15 +125,10 @@ public class Game {
     }
 
     public void redistributeCards() {
-        Map<Integer, Player> rankToPlayer = new HashMap<>();
-        for (Map.Entry<Player, Integer> entry : ranks.entrySet()) {
-            rankToPlayer.put(entry.getValue(), entry.getKey());
-        }
-
-        Player president = rankToPlayer.get(1);
-        Player vicePresident = rankToPlayer.get(2);
-        Player trouduc = rankToPlayer.get(players.size());
-        Player viceTrouduc = rankToPlayer.get(players.size() - 1);
+        Player president = getPlayerByRank(1);
+        Player vicePresident = getPlayerByRank(2);
+        Player trouduc = getPlayerByRank(players.size());
+        Player viceTrouduc = getPlayerByRank(players.size() - 1);
 
         if (president != null && trouduc != null) {
             exchangeCards(president, trouduc, 2);
@@ -142,6 +137,15 @@ public class Game {
         if (vicePresident != null && viceTrouduc != null) {
             exchangeCards(vicePresident, viceTrouduc, 1);
         }
+    }
+
+    private Player getPlayerByRank(int rank) {
+        return ranks.entrySet()
+                .stream()
+                .filter(entry -> entry.getValue() == rank)
+                .map(Map.Entry::getKey)
+                .findFirst()
+                .orElse(null);
     }
 
     private void exchangeCards(Player highRank, Player lowRank, int count) {
