@@ -1,12 +1,13 @@
 package fr.asser.presidentgame.controller;
 
+import fr.asser.presidentgame.model.AppUser;
 import fr.asser.presidentgame.service.AppUserService;
 import fr.asser.presidentgame.service.CustomUserDetailsService;
-import fr.asser.presidentgame.model.AppUser;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import org.springframework.context.MessageSource;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -38,12 +39,13 @@ public class AuthController {
             @ApiResponse(responseCode = "400", description = "Invalid input")
     })
     @PostMapping("/register")
-    public String register(@RequestBody AppUser user, Locale locale) {
+    public ResponseEntity<String> register(@RequestBody AppUser user, Locale locale) {
         if (user.getUsername() == null || user.getPassword() == null) {
-            return messageSource.getMessage("Invalid input data", null, locale);
+            return ResponseEntity.badRequest()
+                    .body(messageSource.getMessage("Invalid input data", null, locale));
         }
         appUserService.registerUser(user);
-        return messageSource.getMessage("user.registered", null, locale);
+        return ResponseEntity.ok(messageSource.getMessage("user.registered", null, locale));
     }
 
     @Operation(summary = "Login user")
@@ -52,11 +54,11 @@ public class AuthController {
             @ApiResponse(responseCode = "401", description = "Invalid credentials")
     })
     @PostMapping("/login")
-    public String login(@RequestBody AppUser user) {
+    public ResponseEntity<String> login(@RequestBody AppUser user) {
         UserDetails userDetails = customUserDetailsService.loadUserByUsername(user.getUsername());
         if (userDetails == null || !passwordEncoder.matches(user.getPassword(), userDetails.getPassword())) {
-            return "Invalid credentials";
+            return ResponseEntity.status(401).body("Invalid credentials");
         }
-        return "User logged in successfully";
+        return ResponseEntity.ok("User logged in successfully");
     }
 }
