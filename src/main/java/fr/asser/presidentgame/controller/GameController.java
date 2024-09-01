@@ -12,6 +12,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 import java.util.Locale;
+import java.util.Set;
 
 @RestController
 @RequestMapping("/api/games")
@@ -106,7 +107,7 @@ public class GameController {
             @ApiResponse(responseCode = "200", description = "Saved games loaded")
     })
     @GetMapping("/saved")
-    public List<Game> loadSavedGames() {
+    public Set<Game> loadSavedGames() {
         return gameService.loadSavedGames();
     }
 }

@@ -17,9 +17,15 @@ public class AppUserService {
         this.passwordEncoder = passwordEncoder;
     }
 
+    public void registerUser(AppUser appUser) {
+        this.registerUser(appUser.getUsername(), appUser.getPassword(), appUser.getRoles());
+    }
+
     public void registerUser(String username, String password, Set<String> roles) {
-        AppUser user = new AppUser(username, passwordEncoder.encode(password), roles);
-        appUserRepository.save(user);
+        if (!existsByUsername(username)) {
+            AppUser user = new AppUser(username, passwordEncoder.encode(password), roles);
+            appUserRepository.save(user);
+        }
     }
 
     public AppUser findByUsername(String username) {
@@ -27,6 +33,6 @@ public class AppUserService {
     }
 
     public boolean existsByUsername(String username) {
-        return appUserRepository.findByUsername(username).isPresent();
+        return appUserRepository.existsByUsername(username);
     }
 }

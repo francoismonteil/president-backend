@@ -17,17 +17,17 @@ public class Player {
 
     @OneToMany(cascade = CascadeType.ALL, orphanRemoval = true)
     @JsonIgnore
-    private List<Card> hand = new ArrayList<>();
+    private List<Card> hand = new ArrayList<>();  // Initialiser la liste ici
 
     @ManyToOne
     @JsonIgnore
     private Game game;
 
-    public Player() {
-    }
+    public Player() {}
 
     public Player(String name) {
         this.name = name;
+        this.hand = new ArrayList<>();  // S'assurer que la liste est initialisée
     }
 
     public Long getId() {
@@ -50,12 +50,11 @@ public class Player {
         hand.remove(card);
     }
 
-    public List<Card> getLowestCards(int count, Comparator<Card> comparator) {
-        return hand.stream().sorted(comparator).limit(count).collect(Collectors.toList());
-    }
-
-    public List<Card> getHighestCards(int count, Comparator<Card> comparator) {
-        return hand.stream().sorted(comparator.reversed()).limit(count).collect(Collectors.toList());
+    public List<Card> getSortedCards(int count, Comparator<Card> comparator, boolean ascending) {
+        return hand.stream()
+                .sorted(ascending ? comparator : comparator.reversed())
+                .limit(count)
+                .collect(Collectors.toList());
     }
 
     public void setGame(Game game) {

@@ -1,5 +1,6 @@
 package fr.asser.presidentgame.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.persistence.*;
 
@@ -10,6 +11,7 @@ import java.util.Set;
 @Schema(description = "User entity representing a player")
 public class AppUser {
     @Id
+    @JsonIgnore
     @GeneratedValue(strategy = GenerationType.AUTO)
     @Schema(description = "Unique identifier of the user", example = "1")
     private Long id;
@@ -20,6 +22,7 @@ public class AppUser {
     @Schema(description = "Password of the user", example = "password123")
     private String password;
 
+    @JsonIgnore
     @ElementCollection(fetch = FetchType.EAGER)
     @Schema(description = "Roles assigned to the user", example = "[\"ROLE_USER\", \"ROLE_ADMIN\"]")
     private Set<String> roles = new HashSet<>();

@@ -1,7 +1,6 @@
-package fr.asser.presidentgame.config;
+package fr.asser.presidentgame.service;
 
 import fr.asser.presidentgame.model.AppUser;
-import fr.asser.presidentgame.service.AppUserService;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
@@ -18,9 +17,6 @@ public class CustomUserDetailsService implements UserDetailsService {
 
     @Override
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
-        if (username == null || username.isEmpty()) {
-            throw new UsernameNotFoundException("Username is empty");
-        }
         AppUser user = appUserService.findByUsername(username);
         if (user == null) {
             throw new UsernameNotFoundException("User not found");

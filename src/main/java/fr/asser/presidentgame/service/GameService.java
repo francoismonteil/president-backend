@@ -4,9 +4,9 @@ import fr.asser.presidentgame.exception.GameNotFoundException;
 import fr.asser.presidentgame.exception.InvalidMoveException;
 import fr.asser.presidentgame.exception.NotPlayersTurnException;
 import fr.asser.presidentgame.model.*;
+import fr.asser.presidentgame.repository.AppUserRepository;
 import fr.asser.presidentgame.repository.GameLogRepository;
 import fr.asser.presidentgame.repository.GameRepository;
-import fr.asser.presidentgame.repository.AppUserRepository;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -14,6 +14,7 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.Set;
 
 @Service
 public class GameService {
@@ -32,14 +33,14 @@ public class GameService {
     public Game createGame(List<String> playerNames) {
         Game game = new Game();
         playerNames.forEach(name -> game.getPlayers().add(new Player(name)));
+        game.getPlayers().forEach(p -> p.setGame(game));
         game.distributeCards();
         return gameRepository.save(game);
     }
 
     @Cacheable("games")
     public Game getGame(Long id) {
-        return gameRepository.findByIdWithAssociations(id)
-                .orElseThrow(() -> new GameNotFoundException(id));
+        return gameRepository.findByIdWithAssociations(id).orElseThrow(() -> new GameNotFoundException(id));
     }
 
     public Game startGame(Long id) {
@@ -81,7 +82,7 @@ public class GameService {
         logAction(id, getCurrentUser().getId(), "Game saved");
     }
 
-    public List<Game> loadSavedGames() {
+    public Set<Game> loadSavedGames() {
         return gameRepository.findAllByIsSaved(true);
     }
 

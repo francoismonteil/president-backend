@@ -1,8 +1,9 @@
 package fr.asser.presidentgame.model;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonBackReference;
 import fr.asser.presidentgame.exception.InvalidMoveException;
 import fr.asser.presidentgame.exception.NotPlayersTurnException;
+import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.persistence.*;
 
 import java.util.*;
@@ -11,13 +12,19 @@ import java.util.*;
 public class Game {
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
+    @Schema(description = "Unique identifier of the game", example = "1")
     private Long id;
+
+    @JsonBackReference
+    @ManyToOne
+    @JoinColumn(name = "user_id")
+    private AppUser appUser;
 
     @OneToMany(cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY, mappedBy = "game")
     private List<Player> players = new ArrayList<>();
 
     @OneToMany(cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
-    private List<Card> deck = new ArrayList<>();
+    private Set<Card> deck = new HashSet<>();  // Changer List en Set
 
     @OneToMany(cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
     private List<Card> playedCards = new ArrayList<>();
@@ -28,7 +35,6 @@ public class Game {
     @CollectionTable(name = "player_ranks", joinColumns = @JoinColumn(name = "game_id"))
     @MapKeyJoinColumn(name = "player_id")
     @Column(name = "rank")
-    @JsonIgnore
     private Map<Player, Integer> ranks = new HashMap<>();
 
     @Column(nullable = false)
@@ -54,11 +60,12 @@ public class Game {
                 deck.add(new Card(suit, rank));
             }
         }
-        Collections.shuffle(deck);
+        var deckList = new ArrayList<>(deck.stream().toList());
+        Collections.shuffle(deckList);
+        deck = new HashSet<>(deckList);
     }
 
     public void distributeCards() {
-        int playerCount = players.size();
         Iterator<Card> deckIterator = deck.iterator();
         while (deckIterator.hasNext()) {
             for (Player player : players) {
@@ -136,8 +143,8 @@ public class Game {
     }
 
     private void exchangeCards(Player highRank, Player lowRank, int count) {
-        List<Card> lowRankCards = lowRank.getLowestCards(count, Card::compareRank);
-        List<Card> highRankCards = highRank.getHighestCards(count, Card::compareRank);
+        List<Card> lowRankCards = lowRank.getSortedCards(count, Card::compareRank, true);
+        List<Card> highRankCards = highRank.getSortedCards(count, Card::compareRank, false);
 
         lowRank.getHand().removeAll(lowRankCards);
         highRank.getHand().removeAll(highRankCards);
@@ -166,11 +173,11 @@ public class Game {
         this.players = players;
     }
 
-    public List<Card> getDeck() {
+    public Set<Card> getDeck() {
         return deck;
     }
 
-    public void setDeck(List<Card> deck) {
+    public void setDeck(Set<Card> deck) {
         this.deck = deck;
     }
 
@@ -196,5 +203,13 @@ public class Game {
 
     public void setRanks(Map<Player, Integer> ranks) {
         this.ranks = ranks;
+    }
+
+    public AppUser getAppUser() {
+        return appUser;
+    }
+
+    public void setAppUser(AppUser appUser) {
+        this.appUser = appUser;
     }
 }
