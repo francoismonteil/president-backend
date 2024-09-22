@@ -7,6 +7,7 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import org.springframework.context.MessageSource;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -42,7 +43,7 @@ public class AuthController {
     public ResponseEntity<String> register(@RequestBody AppUser user, Locale locale) {
         if (user.getUsername() == null || user.getPassword() == null) {
             return ResponseEntity.badRequest()
-                    .body(messageSource.getMessage("Invalid input data", null, locale));
+                    .body(messageSource.getMessage("invalid.input.data", null, locale));
         }
         appUserService.registerUser(user);
         return ResponseEntity.ok(messageSource.getMessage("user.registered", null, locale));
@@ -54,11 +55,11 @@ public class AuthController {
             @ApiResponse(responseCode = "401", description = "Invalid credentials")
     })
     @PostMapping("/login")
-    public ResponseEntity<String> login(@RequestBody AppUser user) {
+    public ResponseEntity<String> login(@RequestBody AppUser user, Locale locale) {
         UserDetails userDetails = customUserDetailsService.loadUserByUsername(user.getUsername());
         if (userDetails == null || !passwordEncoder.matches(user.getPassword(), userDetails.getPassword())) {
-            return ResponseEntity.status(401).body("Invalid credentials");
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(messageSource.getMessage("invalid.credentials", null, locale));
         }
-        return ResponseEntity.ok("User logged in successfully");
+        return ResponseEntity.ok(messageSource.getMessage("user.logged", null, locale));
     }
 }

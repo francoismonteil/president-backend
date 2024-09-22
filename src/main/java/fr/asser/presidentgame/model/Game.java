@@ -24,10 +24,10 @@ public class Game {
     private List<Player> players = new ArrayList<>();
 
     @OneToMany(cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
-    private Set<Card> deck = new HashSet<>();  // Changer List en Set
+    private Set<Card> deck = new HashSet<>();
 
     @OneToMany(cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
-    private List<Card> playedCards = new ArrayList<>();
+    private Set<Card> playedCards = new HashSet<>();
 
     private int currentPlayerIndex = 0;
 
@@ -112,8 +112,9 @@ public class Game {
     }
 
     private List<Card> getLastPlayedCards(int count) {
-        int startIndex = Math.max(playedCards.size() - count, 0);
-        return playedCards.subList(startIndex, playedCards.size());
+        List<Card> playedCardsList = new ArrayList<>(playedCards);
+        int startIndex = Math.max(playedCardsList.size() - count, 0);
+        return playedCardsList.subList(startIndex, playedCardsList.size());
     }
 
     public void passTurn(Long playerId) {
@@ -187,11 +188,11 @@ public class Game {
         this.deck = deck;
     }
 
-    public List<Card> getPlayedCards() {
+    public Set<Card> getPlayedCards() {
         return playedCards;
     }
 
-    public void setPlayedCards(List<Card> playedCards) {
+    public void setPlayedCards(Set<Card> playedCards) {
         this.playedCards = playedCards;
     }
 
