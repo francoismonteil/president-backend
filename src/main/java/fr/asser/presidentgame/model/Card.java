@@ -60,4 +60,10 @@ public class Card {
         }
         return true;
     }
+
+    @Override
+    public String toString() {
+        return "Card{suit='" + suit + "', rank='" + rank + "'}";
+    }
+
 }

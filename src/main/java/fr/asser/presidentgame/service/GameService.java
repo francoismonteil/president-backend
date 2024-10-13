@@ -111,11 +111,11 @@ public class GameService {
 
     private AppUser getCurrentUser() {
         Object principal = SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-        if (principal instanceof UserDetails) {
-            String username = ((UserDetails) principal).getUsername();
-            return userRepository.findByUsername(username).orElse(null);
+        if (!(principal instanceof UserDetails)) {
+            throw new IllegalStateException("Authentication principal is not a UserDetails instance");
         }
-        return null;
+        String username = ((UserDetails) principal).getUsername();
+        return userRepository.findByUsername(username).orElse(null);
     }
 
     private void logAction(Long gameId, Long playerId, String action) {

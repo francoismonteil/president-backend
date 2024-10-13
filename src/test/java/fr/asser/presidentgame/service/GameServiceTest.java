@@ -1,11 +1,12 @@
 package fr.asser.presidentgame.service;
 
+import fr.asser.presidentgame.exception.InvalidMoveException;
+import fr.asser.presidentgame.exception.NotPlayersTurnException;
 import fr.asser.presidentgame.model.*;
 import fr.asser.presidentgame.repository.AppUserRepository;
 import fr.asser.presidentgame.repository.GameLogRepository;
 import fr.asser.presidentgame.repository.GameRepository;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.*;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import static org.mockito.ArgumentMatchers.any;
@@ -15,6 +16,7 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.User;
 
+import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
@@ -154,4 +156,76 @@ class GameServiceTest {
         assertNotNull(savedGames);
         assertEquals(2, savedGames.size());  // Vérifie que 2 parties sauvegardées sont récupérées
     }
+
+    @Test
+    void testPassTurn_NotPlayersTurn() {
+        // Arrange
+        Game game = new Game();
+        Player player1 = new Player("Player1");
+        player1.setId(1L);
+        Player player2 = new Player("Player2");
+        player2.setId(2L);
+        game.getPlayers().add(player1);
+        game.getPlayers().add(player2);
+        game.setState(GameState.IN_PROGRESS);
+        game.setCurrentPlayerIndex(0);  // C'est au tour de player1
+        when(gameRepository.findByIdWithAssociations(anyLong())).thenReturn(Optional.of(game));
+
+        // Act & Assert
+        NotPlayersTurnException exception = assertThrows(NotPlayersTurnException.class, () -> {
+            gameService.passTurn(1L, player2.getId());  // Player2 tente de passer alors que ce n'est pas son tour
+        });
+
+        assertEquals("It's not player 2's turn.", exception.getMessage());
+        verify(gameRepository, times(0)).save(game);  // Assurer que la partie n'est pas sauvegardée
+    }
+
+    @Test
+    void testPlayCards_InvalidMove() {
+        // Arrange
+        Player player = new Player("Player1");
+        player.setId(1L);
+        Game game = mock(Game.class);
+        when(game.getPlayers()).thenReturn(Collections.singletonList(player));
+        when(game.getState()).thenReturn(GameState.IN_PROGRESS);
+        when(gameRepository.findByIdWithAssociations(anyLong())).thenReturn(Optional.of(game));
+
+        // Simuler un mouvement invalide
+        when(game.isValidMove(anyList())).thenReturn(false);
+
+        // Act & Assert
+        InvalidMoveException exception = assertThrows(InvalidMoveException.class, () -> {
+            gameService.playCards(1L, player.getId(), List.of(new Card("Hearts", "3")));
+        });
+
+        assertEquals("Invalid move: [Card{suit='Hearts', rank='3'}]", exception.getMessage());
+        verify(gameRepository, times(0)).save(game);  // Vérifie que la partie n'est pas sauvegardée en cas de mouvement invalide
+    }
+
+    @Test
+    void testPlayCards_PrincipalNotUserDetails() {
+        // Simuler un principal qui n'est pas un UserDetails (par exemple, un simple String)
+        String principal = "SomeOtherPrincipal";
+        UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(principal, null, null);
+        SecurityContextHolder.getContext().setAuthentication(authentication);
+
+        // Arrange
+        Game game = new Game();
+        Player player = new Player("Player1");
+        player.setId(1L);
+        game.getPlayers().add(player);
+        game.setState(GameState.IN_PROGRESS);
+        when(gameRepository.findByIdWithAssociations(anyLong())).thenReturn(Optional.of(game));
+
+        // Act & Assert
+        IllegalStateException exception = assertThrows(IllegalStateException.class, () -> {
+            gameService.playCards(1L, player.getId(), List.of(new Card("Hearts", "3")));
+        });
+
+        assertEquals("Authentication principal is not a UserDetails instance", exception.getMessage());
+
+        // Nettoyer le contexte de sécurité après le test
+        SecurityContextHolder.clearContext();
+    }
+
 }
