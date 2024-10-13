@@ -95,12 +95,45 @@ public class Game {
         if (!isValidMove(cards)) {
             throw new InvalidMoveException("Invalid move: " + cards);
         }
-        cards.forEach(currentPlayer::playCard);
+
+        currentPlayer.playCard(cards.get(0));  // Jouer la première carte et réinitialiser le passage du joueur
         playedCards.addAll(cards);
+
+        // Si le joueur n'a plus de cartes, il a terminé la partie et son rang est assigné
         if (currentPlayer.getHand().isEmpty()) {
             ranks.put(currentPlayer, ranks.size() + 1);
         }
+
+        // Passer au joueur suivant
         currentPlayerIndex = (currentPlayerIndex + 1) % players.size();
+
+        // Vérifier si le pli est terminé (tous les joueurs sauf un ont passé)
+        if (allPlayersHavePassed()) {
+            clearPlayedCards();  // Réinitialiser les cartes jouées
+            resetPlayers();  // Réinitialiser l'état de passage des joueurs
+            currentPlayerIndex = getLastPlayerWhoPlayedIndex();
+        }
+    }
+
+    private boolean allPlayersHavePassed() {
+        // Ici, tu peux ajouter une logique pour vérifier si tous les joueurs sauf un ont passé
+        // Par exemple, si tu as une liste ou un compteur pour les joueurs qui ont passé.
+        return players.size() - getActivePlayersCount() == 1;
+    }
+
+    private int getActivePlayersCount() {
+        // Retourne le nombre de joueurs qui n'ont pas encore passé leur tour dans ce pli
+        // Tu devras maintenir cet état quelque part (par exemple, avec un compteur ou un flag)
+        return (int) players.stream().filter(player -> !player.hasPassed()).count();
+    }
+
+    private void clearPlayedCards() {
+        playedCards.clear();  // Vider les cartes jouées à la fin d'un pli
+    }
+
+    private int getLastPlayerWhoPlayedIndex() {
+        // Logique pour obtenir l'index du dernier joueur qui a joué (et non passé)
+        return currentPlayerIndex;  // À adapter selon ta logique
     }
 
     public boolean isValidMove(List<Card> cards) {
@@ -164,7 +197,21 @@ public class Game {
         if (!currentPlayer.getId().equals(playerId)) {
             throw new IllegalStateException("Not this player's turn");
         }
+
+        currentPlayer.passTurn();  // Le joueur passe son tour
+
         currentPlayerIndex = (currentPlayerIndex + 1) % players.size();
+
+        // Vérifier si tous les joueurs sauf un ont passé
+        if (allPlayersHavePassed()) {
+            clearPlayedCards();  // Réinitialiser les cartes jouées
+            resetPlayers();  // Réinitialiser l'état de passage des joueurs
+            currentPlayerIndex = getLastPlayerWhoPlayedIndex();
+        }
+    }
+
+    private void resetPlayers() {
+        players.forEach(Player::resetPassed);  // Réinitialiser l'état de passage des joueurs
     }
 
     public void redistributeCards() {

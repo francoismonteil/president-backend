@@ -22,10 +22,13 @@ public class Player {
     @JoinColumn(name = "game_id")  // Colonne de jointure pour l'association
     private Game game;
 
+    private boolean hasPassed;  // Indicateur pour savoir si le joueur a passé son tour
+
     public Player() {}
 
     public Player(String name) {
         this.name = name;
+        this.hasPassed = false;  // Initialiser à false au début
     }
 
     public Long getId() {
@@ -58,6 +61,19 @@ public class Player {
 
     public void playCard(Card card) {
         removeCardFromHand(card);
+        this.hasPassed = false;  // Le joueur ne passe pas s'il joue une carte
+    }
+
+    public void passTurn() {
+        this.hasPassed = true;  // Le joueur passe son tour
+    }
+
+    public boolean hasPassed() {
+        return hasPassed;
+    }
+
+    public void resetPassed() {
+        this.hasPassed = false;  // Réinitialiser à chaque début de nouveau pli
     }
 
     public List<Card> getSortedCards(int count, Comparator<Card> comparator, boolean ascending) {

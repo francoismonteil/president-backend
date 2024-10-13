@@ -71,7 +71,7 @@ class GameScenarioIntegrationTest {
         simulateTurn(1, null);
 
         // Vérification : Troisième joueur a remporté le pli
-        assertTrue(game.getPlayedCards().containsAll(List.of(new Card("Clubs", "10"), new Card("Diamonds", "10"))));
+        assertTrue(game.getPlayedCards().isEmpty());
         assertEquals(3L, game.getPlayers().get(game.getCurrentPlayerIndex()).getId());  // Troisième joueur doit commencer le pli suivant
     }
 
