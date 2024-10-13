@@ -46,7 +46,7 @@ public class GameService {
     public Game startGame(Long id) {
         Game game = getGame(id);
         validateUserAccess(game);
-        game.redistributeCards();
+        game.setState(GameState.IN_PROGRESS);
         Game updatedGame = gameRepository.save(game);
         messagingTemplate.convertAndSend("/topic/gameState", updatedGame);
         logAction(game.getId(), getCurrentUser().getId(), "Game started");
