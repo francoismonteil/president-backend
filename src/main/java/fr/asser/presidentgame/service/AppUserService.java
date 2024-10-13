@@ -1,7 +1,9 @@
 package fr.asser.presidentgame.service;
 
 import fr.asser.presidentgame.model.AppUser;
+import fr.asser.presidentgame.model.Role;
 import fr.asser.presidentgame.repository.AppUserRepository;
+import fr.asser.presidentgame.repository.RoleRepository;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -10,10 +12,12 @@ import java.util.Set;
 @Service
 public class AppUserService {
     private final AppUserRepository appUserRepository;
+    private final RoleRepository roleRepository;
     private final PasswordEncoder passwordEncoder;
 
-    public AppUserService(AppUserRepository appUserRepository, PasswordEncoder passwordEncoder) {
+    public AppUserService(AppUserRepository appUserRepository, RoleRepository roleRepository, PasswordEncoder passwordEncoder) {
         this.appUserRepository = appUserRepository;
+        this.roleRepository = roleRepository;
         this.passwordEncoder = passwordEncoder;
     }
 
@@ -21,7 +25,7 @@ public class AppUserService {
         registerUser(appUser.getUsername(), appUser.getPassword(), appUser.getRoles());
     }
 
-    public void registerUser(String username, String password, Set<String> roles) {
+    public void registerUser(String username, String password, Set<Role> roles) {
         if (!existsByUsername(username)) {
             AppUser user = new AppUser(username, passwordEncoder.encode(password), roles);
             appUserRepository.save(user);
@@ -34,5 +38,12 @@ public class AppUserService {
 
     public boolean existsByUsername(String username) {
         return appUserRepository.existsByUsername(username);
+    }
+
+    public void addRoleToUser(String username, String roleName) {
+        AppUser user = findByUsername(username);
+        Role role = roleRepository.findByName(roleName).orElseThrow(() -> new IllegalArgumentException("Role not found"));
+        user.getRoles().add(role);
+        appUserRepository.save(user);
     }
 }
