@@ -107,25 +107,58 @@ public class Game {
         if (playedCards.isEmpty()) {
             return true;
         }
-        return isSameRankMove(cards) || isSequenceMove(cards);
+        if (cards.size() == 1) {
+            return isSingleCardMoveValid(cards);
+        }
+        if (Card.areSameRank(cards)) {
+            return isSameRankMove(cards);
+        }
+        if (cards.size() > 1 && Card.isSequence(cards)) {
+            return isSequenceMove(cards);
+        }
+        throw new InvalidMoveException("Invalid move: unsupported card combination.");
+    }
+
+    private boolean isSingleCardMoveValid(List<Card> cards) {
+        Card lastPlayed = getLastPlayedCard();
+        if (Card.compareRank(cards.get(0), lastPlayed) <= 0) {
+            throw new InvalidMoveException("Invalid move: single card played must be of higher rank.");
+        }
+        return true;
     }
 
     private boolean isSameRankMove(List<Card> cards) {
         List<Card> lastPlayed = getLastPlayedCards(cards.size());
-        return Card.areSameRank(cards) && Card.areSameRank(lastPlayed) &&
-                Card.compareRank(cards.get(0), lastPlayed.get(0)) > 0;
+        if (!Card.areSameRank(lastPlayed)) {
+            throw new InvalidMoveException("Invalid move: last played cards are not of the same rank.");
+        }
+        if (Card.compareRank(cards.get(0), lastPlayed.get(0)) <= 0) {
+            throw new InvalidMoveException("Invalid move: same rank cards must be of higher rank.");
+        }
+        return true;
     }
 
     private boolean isSequenceMove(List<Card> cards) {
         List<Card> lastPlayed = getLastPlayedCards(cards.size());
-        return Card.isSequence(cards) && Card.isSequence(lastPlayed) &&
-                Card.compareRank(cards.get(0), lastPlayed.get(0)) > 0;
+        if (!Card.isSequence(lastPlayed)) {
+            throw new InvalidMoveException("Invalid move: last played cards are not a sequence.");
+        }
+        if (Card.compareRank(cards.get(0), lastPlayed.get(0)) <= 0) {
+            throw new InvalidMoveException("Invalid move: sequence must be of higher rank.");
+        }
+        return true;
     }
 
     private List<Card> getLastPlayedCards(int count) {
         List<Card> playedCardsList = new ArrayList<>(playedCards);
-        int startIndex = Math.max(playedCardsList.size() - count, 0);
-        return playedCardsList.subList(startIndex, playedCardsList.size());
+        if (playedCardsList.size() < count) {
+            throw new InvalidMoveException("Invalid move: not enough cards have been played previously for comparison.");
+        }
+        return playedCardsList.subList(playedCardsList.size() - count, playedCardsList.size());
+    }
+
+    private Card getLastPlayedCard() {
+        return new ArrayList<>(playedCards).get(playedCards.size() - 1);
     }
 
     public void passTurn(Long playerId) {
