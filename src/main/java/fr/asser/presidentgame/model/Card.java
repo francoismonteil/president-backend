@@ -8,6 +8,7 @@ import jakarta.persistence.Id;
 
 import java.util.Arrays;
 import java.util.List;
+import java.util.Objects;
 
 @Entity
 public class Card {
@@ -62,8 +63,20 @@ public class Card {
     }
 
     @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        Card card = (Card) o;
+        return suit.equals(card.suit) && rank.equals(card.rank);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(suit, rank);
+    }
+
+    @Override
     public String toString() {
         return "Card{suit='" + suit + "', rank='" + rank + "'}";
     }
-
 }

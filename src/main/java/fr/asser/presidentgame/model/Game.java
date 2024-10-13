@@ -107,6 +107,7 @@ public class Game {
         if (playedCards.isEmpty()) {
             return true;
         }
+
         if (cards.size() == 1) {
             return isSingleCardMoveValid(cards);
         }
@@ -130,12 +131,9 @@ public class Game {
     private boolean isSameRankMove(List<Card> cards) {
         List<Card> lastPlayed = getLastPlayedCards(cards.size());
         if (!Card.areSameRank(lastPlayed)) {
-            throw new InvalidMoveException("Invalid move: last played cards are not of the same rank.");
+            return false;
         }
-        if (Card.compareRank(cards.get(0), lastPlayed.get(0)) <= 0) {
-            throw new InvalidMoveException("Invalid move: same rank cards must be of higher rank.");
-        }
-        return true;
+        return Card.compareRank(cards.get(0), lastPlayed.get(0)) > 0;
     }
 
     private boolean isSequenceMove(List<Card> cards) {
@@ -149,7 +147,7 @@ public class Game {
         return true;
     }
 
-    private List<Card> getLastPlayedCards(int count) {
+    List<Card> getLastPlayedCards(int count) {
         List<Card> playedCardsList = new ArrayList<>(playedCards);
         if (playedCardsList.size() < count) {
             throw new InvalidMoveException("Invalid move: not enough cards have been played previously for comparison.");
@@ -173,7 +171,7 @@ public class Game {
     }
 
     public void redistributeCards() {
-        if (state != GameState.FINISHED) {
+        if (state != GameState.DISTRIBUTING_CARDS) {
             throw new IllegalStateException("Cannot redistribute cards in the current game state.");
         }
         Player president = getPlayerByRank(1);
@@ -199,9 +197,9 @@ public class Game {
                 .orElse(null);
     }
 
-    private void exchangeCards(Player highRank, Player lowRank, int count) {
-        List<Card> lowRankCards = lowRank.getSortedCards(count, Card::compareRank, true);
-        List<Card> highRankCards = highRank.getSortedCards(count, Card::compareRank, false);
+    void exchangeCards(Player highRank, Player lowRank, int count) {
+        List<Card> lowRankCards = lowRank.getSortedCards(count, Card::compareRank, false);
+        List<Card> highRankCards = highRank.getSortedCards(count, Card::compareRank, true);
 
         lowRank.getHand().removeAll(lowRankCards);
         highRank.getHand().removeAll(highRankCards);
@@ -211,7 +209,13 @@ public class Game {
     }
 
     public void calculateRanks() {
-        players.sort(Comparator.comparingInt(player -> ranks.getOrDefault(player, Integer.MAX_VALUE)));
+        int rank = 1;  // Commence à 1 pour le Président
+        for (Player player : players) {
+            if (player.getHand().isEmpty()) {
+                ranks.put(player, rank);  // Assigner un rang au joueur
+                rank++;
+            }
+        }
     }
 
     public Long getId() {

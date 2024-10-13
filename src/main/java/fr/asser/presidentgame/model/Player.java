@@ -46,7 +46,7 @@ public class Player {
     }
 
     public void setHand(List<Card> hand) {
-        this.hand = hand;
+        this.hand = new ArrayList<>(hand);
     }
 
     public void addCardToHand(Card card) {
