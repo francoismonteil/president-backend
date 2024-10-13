@@ -5,7 +5,6 @@ import fr.asser.presidentgame.service.AppUserService;
 import fr.asser.presidentgame.service.CustomUserDetailsService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
-import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import org.springframework.context.MessageSource;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -35,10 +34,8 @@ public class AuthController {
     }
 
     @Operation(summary = "Register a new user")
-    @ApiResponses({
-            @ApiResponse(responseCode = "200", description = "User registered successfully"),
-            @ApiResponse(responseCode = "400", description = "Invalid input")
-    })
+    @ApiResponse(responseCode = "200", description = "User registered successfully")
+    @ApiResponse(responseCode = "400", description = "Invalid input")
     @PostMapping("/register")
     public ResponseEntity<String> register(@RequestBody AppUser user, Locale locale) {
         if (user.getUsername() == null || user.getPassword() == null) {
@@ -50,10 +47,8 @@ public class AuthController {
     }
 
     @Operation(summary = "Login user")
-    @ApiResponses({
-            @ApiResponse(responseCode = "200", description = "User logged in successfully"),
-            @ApiResponse(responseCode = "401", description = "Invalid credentials")
-    })
+    @ApiResponse(responseCode = "200", description = "User logged in successfully")
+    @ApiResponse(responseCode = "401", description = "Invalid credentials")
     @PostMapping("/login")
     public ResponseEntity<String> login(@RequestBody AppUser user, Locale locale) {
         UserDetails userDetails = customUserDetailsService.loadUserByUsername(user.getUsername());
