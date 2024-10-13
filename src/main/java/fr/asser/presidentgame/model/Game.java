@@ -40,6 +40,9 @@ public class Game {
     @Column(nullable = false)
     private Boolean isSaved = false;
 
+    @Enumerated(EnumType.STRING)
+    private GameState state = GameState.INITIALIZED;
+
     public Game() {
         initializeDeck();
     }
@@ -66,6 +69,10 @@ public class Game {
     }
 
     public void distributeCards() {
+        if (state != GameState.INITIALIZED) {
+            throw new IllegalStateException("Cannot distribute cards in the current game state.");
+        }
+        state = GameState.DISTRIBUTING_CARDS;
         Iterator<Card> deckIterator = deck.iterator();
         while (deckIterator.hasNext()) {
             for (Player player : players) {
@@ -74,9 +81,13 @@ public class Game {
                 }
             }
         }
+        state = GameState.IN_PROGRESS;
     }
 
     public void playCards(Long playerId, List<Card> cards) {
+        if (state != GameState.IN_PROGRESS) {
+            throw new IllegalStateException("Cannot play cards in the current game state.");
+        }
         Player currentPlayer = players.get(currentPlayerIndex);
         if (!currentPlayer.getId().equals(playerId)) {
             throw new NotPlayersTurnException(playerId);
@@ -118,6 +129,9 @@ public class Game {
     }
 
     public void passTurn(Long playerId) {
+        if (state != GameState.IN_PROGRESS) {
+            throw new IllegalStateException("Cannot pass turn in the current game state.");
+        }
         Player currentPlayer = players.get(currentPlayerIndex);
         if (!currentPlayer.getId().equals(playerId)) {
             throw new IllegalStateException("Not this player's turn");
@@ -126,6 +140,9 @@ public class Game {
     }
 
     public void redistributeCards() {
+        if (state != GameState.FINISHED) {
+            throw new IllegalStateException("Cannot redistribute cards in the current game state.");
+        }
         Player president = getPlayerByRank(1);
         Player vicePresident = getPlayerByRank(2);
         Player trouduc = getPlayerByRank(players.size());
@@ -218,5 +235,13 @@ public class Game {
 
     public void setAppUser(AppUser appUser) {
         this.appUser = appUser;
+    }
+
+    public GameState getState() {
+        return state;
+    }
+
+    public void setState(GameState state) {
+        this.state = state;
     }
 }
