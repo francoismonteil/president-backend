@@ -43,7 +43,6 @@ public class GameService {
         return gameRepository.findByIdWithAssociations(id).orElseThrow(() -> new GameNotFoundException(id));
     }
 
-
     public Game startGame(Long id) {
         Game game = getGame(id);
         validateUserAccess(game);

@@ -18,7 +18,7 @@ public class AppUserService {
     }
 
     public void registerUser(AppUser appUser) {
-        this.registerUser(appUser.getUsername(), appUser.getPassword(), appUser.getRoles());
+        registerUser(appUser.getUsername(), appUser.getPassword(), appUser.getRoles());
     }
 
     public void registerUser(String username, String password, Set<String> roles) {

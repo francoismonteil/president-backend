@@ -17,7 +17,7 @@ public class Player {
 
     @OneToMany(cascade = CascadeType.ALL, orphanRemoval = true)
     @JsonIgnore
-    private List<Card> hand = new ArrayList<>();  // Initialiser la liste ici
+    private List<Card> hand = new ArrayList<>();
 
     @ManyToOne
     @JsonIgnore
@@ -27,7 +27,6 @@ public class Player {
 
     public Player(String name) {
         this.name = name;
-        this.hand = new ArrayList<>();  // S'assurer que la liste est initialisée
     }
 
     public Long getId() {

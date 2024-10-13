@@ -16,9 +16,7 @@ public class SwaggerConfig {
                 .info(new Info().title("PresidentGame API").version("1.0").description("API documentation for PresidentGame"))
                 .addSecurityItem(new SecurityRequirement().addList("basicAuth"))
                 .components(new io.swagger.v3.oas.models.Components()
-                        .addSecuritySchemes("basicAuth",
-                                new SecurityScheme().type(SecurityScheme.Type.HTTP).scheme("basic"))
-                        .addSecuritySchemes("bearerAuth",
-                                new SecurityScheme().type(SecurityScheme.Type.HTTP).scheme("bearer").bearerFormat("JWT")));
+                        .addSecuritySchemes("basicAuth", new SecurityScheme().type(SecurityScheme.Type.HTTP).scheme("basic"))
+                        .addSecuritySchemes("bearerAuth", new SecurityScheme().type(SecurityScheme.Type.HTTP).scheme("bearer").bearerFormat("JWT")));
     }
 }

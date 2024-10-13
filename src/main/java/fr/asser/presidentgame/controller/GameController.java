@@ -31,12 +31,11 @@ public class GameController {
             @ApiResponse(responseCode = "400", description = "Invalid input")
     })
     @PostMapping
-    public String createGame(@RequestBody List<String> playerNames, Locale locale) {
+    public ResponseEntity<Game> createGame(@RequestBody List<String> playerNames, Locale locale) {
         if (playerNames == null || playerNames.isEmpty()) {
-            return messageSource.getMessage("Invalid input data", null, locale);
+            return ResponseEntity.badRequest().body(null);
         }
-        gameService.createGame(playerNames);
-        return messageSource.getMessage("game.created", null, locale);
+        return ResponseEntity.ok(gameService.createGame(playerNames));
     }
 
     @Operation(summary = "Get game by ID")
