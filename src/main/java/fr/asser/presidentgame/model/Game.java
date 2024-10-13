@@ -155,8 +155,8 @@ public class Game {
 
     private boolean isSingleCardMoveValid(List<Card> cards) {
         Card lastPlayed = getLastPlayedCard();
-        if (Card.compareRank(cards.get(0), lastPlayed) <= 0) {
-            throw new InvalidMoveException("Invalid move: single card played must be of higher rank.");
+        if (Card.compareRank(cards.get(0), lastPlayed) < 0) {
+            throw new InvalidMoveException("Invalid move: single card played must be equal or of higher rank.");
         }
         return true;
     }
