@@ -20,7 +20,7 @@ public class Player {
     private List<Card> hand = new ArrayList<>();
 
     @ManyToOne
-    @JsonIgnore
+    @JoinColumn(name = "game_id")  // Colonne de jointure pour l'association
     private Game game;
 
     public Player() {}
@@ -31,6 +31,10 @@ public class Player {
 
     public Long getId() {
         return id;
+    }
+
+    public void setId(Long id) {
+        this.id = id;
     }
 
     public String getName() {

@@ -32,11 +32,13 @@ public class GameService {
 
     public Game createGame(List<String> playerNames) {
         Game game = new Game();
-        playerNames.forEach(name -> game.getPlayers().add(new Player(name)));
-        game.getPlayers().forEach(p -> p.setGame(game));
-        game.distributeCards();
+        for (String playerName : playerNames) {
+            Player player = new Player(playerName);
+            game.addPlayer(player);
+        }
         return gameRepository.save(game);
     }
+
 
     @Cacheable("games")
     public Game getGame(Long id) {

@@ -20,7 +20,7 @@ public class Game {
     @JoinColumn(name = "user_id")
     private AppUser appUser;
 
-    @OneToMany(cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY, mappedBy = "game")
+    @OneToMany(mappedBy = "game", cascade = CascadeType.ALL, orphanRemoval = true)  // Relation correcte
     private List<Player> players = new ArrayList<>();
 
     @OneToMany(cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
@@ -228,6 +228,11 @@ public class Game {
 
     public void setPlayers(List<Player> players) {
         this.players = players;
+    }
+
+    public void addPlayer(Player player) {
+        players.add(player);
+        player.setGame(this);  // Associe le joueur à la partie
     }
 
     public Set<Card> getDeck() {
