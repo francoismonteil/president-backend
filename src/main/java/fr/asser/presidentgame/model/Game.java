@@ -95,24 +95,25 @@ public class Game {
         if (!isValidMove(cards)) {
             throw new InvalidMoveException("Invalid move: " + cards);
         }
-
-        currentPlayer.playCard(cards.get(0));  // Jouer la première carte et réinitialiser le passage du joueur
+        cards.forEach(currentPlayer::playCard);
         playedCards.addAll(cards);
 
-        // Si le joueur n'a plus de cartes, il a terminé la partie et son rang est assigné
+        // Vérifier si 4 cartes de même valeur ont été jouées
+        if (playedCards.size() >= 4) {
+            List<Card> lastFourCards = getLastPlayedCards(4);
+            if (Card.areSameRank(lastFourCards)) {
+                // Si 4 cartes du même rang sont jouées, le pli est terminé
+                currentPlayerIndex = players.indexOf(currentPlayer);  // Le joueur actuel gagne le pli
+                playedCards.clear();  // Réinitialiser les cartes jouées
+                return;
+            }
+        }
+
         if (currentPlayer.getHand().isEmpty()) {
             ranks.put(currentPlayer, ranks.size() + 1);
         }
 
-        // Passer au joueur suivant
         currentPlayerIndex = (currentPlayerIndex + 1) % players.size();
-
-        // Vérifier si le pli est terminé (tous les joueurs sauf un ont passé)
-        if (allPlayersHavePassed()) {
-            clearPlayedCards();  // Réinitialiser les cartes jouées
-            resetPlayers();  // Réinitialiser l'état de passage des joueurs
-            currentPlayerIndex = getLastPlayerWhoPlayedIndex();
-        }
     }
 
     private boolean allPlayersHavePassed() {

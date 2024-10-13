@@ -72,7 +72,15 @@ class GameScenarioIntegrationTest {
 
         // Vérification : Troisième joueur a remporté le pli
         assertTrue(game.getPlayedCards().isEmpty());
-        assertEquals(3L, game.getPlayers().get(game.getCurrentPlayerIndex()).getId());  // Troisième joueur doit commencer le pli suivant
+        assertEquals(3L, game.getPlayers().get(game.getCurrentPlayerIndex()).getId());
+
+        simulateTurn(2, List.of(new Card("Clubs", "3")));
+        simulateTurn( 3, List.of(new Card("Diamonds", "3")));
+        simulateTurn( 0, List.of(new Card("Spades", "3")));
+        simulateTurn( 1, List.of(new Card("Hearts", "3")));
+
+        assertTrue(game.getPlayedCards().isEmpty());
+        assertEquals(2L, game.getPlayers().get(game.getCurrentPlayerIndex()).getId());
     }
 
     private void simulateTurn(int playerIndex, List<Card> cards) {
