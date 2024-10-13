@@ -1,6 +1,5 @@
 package fr.asser.presidentgame.model;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 
 import java.util.ArrayList;
@@ -16,7 +15,7 @@ public class Player {
     private String name;
 
     @OneToMany(cascade = CascadeType.ALL, orphanRemoval = true)
-    @JsonIgnore
+    @JoinColumn(name = "player_id")
     private List<Card> hand = new ArrayList<>();
 
     @ManyToOne
