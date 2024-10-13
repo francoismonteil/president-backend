@@ -130,9 +130,6 @@ public class Game {
 
     private boolean isSameRankMove(List<Card> cards) {
         List<Card> lastPlayed = getLastPlayedCards(cards.size());
-        if (!Card.areSameRank(lastPlayed)) {
-            return false;
-        }
         return Card.compareRank(cards.get(0), lastPlayed.get(0)) > 0;
     }
 
