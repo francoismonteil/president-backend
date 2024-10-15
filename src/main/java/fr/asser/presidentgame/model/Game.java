@@ -27,7 +27,7 @@ public class Game {
     private Set<Card> deck = new HashSet<>();
 
     @OneToMany(cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
-    private Set<Card> playedCards = new HashSet<>();
+    private List<Card> playedCards = new ArrayList<>();
 
     private int currentPlayerIndex = 0;
     private boolean orNothingConditionActive = false;
@@ -112,16 +112,16 @@ public class Game {
         if (playedCards.size() >= 4) {
             List<Card> lastFourCards = getLastPlayedCards(4);
             if (Card.areSameRank(lastFourCards)) {
-                // Si 4 cartes du même rang sont jouées, le pli est terminé
                 currentPlayerIndex = players.indexOf(currentPlayer);  // Le joueur actuel gagne le pli
                 playedCards.clear();  // Réinitialiser les cartes jouées
+                resetPlayers();  // Réinitialiser le statut `hasPassed` de tous les joueurs
                 orNothingConditionActive = false;  // Désactiver la condition "Ou rien"
                 currentRequiredRank = null;  // Réinitialiser la carte requise
                 return;
             }
         }
 
-        // Activer la règle "Ou rien" si deux cartes consécutives du même rang ont été jouées
+        // Activer la règle "Ou rien" seulement si les deux dernières cartes jouées par deux joueurs différents sont du même rang
         if (cards.size() == 1) {  // On ne vérifie que si une carte est jouée
             if (playedCards.size() >= 2) {
                 List<Card> lastTwoCards = getLastPlayedCards(2);
@@ -214,11 +214,10 @@ public class Game {
     }
 
     List<Card> getLastPlayedCards(int count) {
-        List<Card> playedCardsList = new ArrayList<>(playedCards);
-        if (playedCardsList.size() < count) {
+        if (playedCards.size() < count) {
             throw new InvalidMoveException("Invalid move: not enough cards have been played previously for comparison.");
         }
-        return playedCardsList.subList(playedCardsList.size() - count, playedCardsList.size());
+        return playedCards.subList(playedCards.size() - count, playedCards.size());
     }
 
     private Card getLastPlayedCard() {
@@ -234,18 +233,26 @@ public class Game {
             throw new IllegalStateException("Not this player's turn");
         }
 
-        currentPlayer.passTurn();  // Le joueur passe son tour
+        // Si le joueur a déjà passé, il ne peut pas réinitialiser "Ou rien" en passant à nouveau
+        boolean alreadyPassed = currentPlayer.hasPassed();
+        currentPlayer.passTurn();  // Marquer que le joueur passe son tour
 
+        // Passer au joueur suivant
         currentPlayerIndex = (currentPlayerIndex + 1) % players.size();
+
+        // Si un joueur passe pendant "Ou rien" et qu'il n'avait pas encore passé, réinitialiser "Ou rien"
+        if (orNothingConditionActive && !alreadyPassed) {
+            orNothingConditionActive = false;  // Désactiver la condition "Ou rien"
+            currentRequiredRank = null;  // Réinitialiser la carte requise
+        }
 
         // Vérifier si tous les joueurs sauf un ont passé
         if (allPlayersHavePassed()) {
             clearPlayedCards();  // Réinitialiser les cartes jouées
             resetPlayers();  // Réinitialiser l'état de passage des joueurs
-            currentPlayerIndex = getLastPlayerWhoPlayedIndex();
+            currentPlayerIndex = getLastPlayerWhoPlayedIndex();  // Revenir au dernier joueur qui a joué
         }
     }
-
     private void resetPlayers() {
         players.forEach(Player::resetPassed);  // Réinitialiser l'état de passage des joueurs
     }
@@ -327,11 +334,11 @@ public class Game {
         this.deck = deck;
     }
 
-    public Set<Card> getPlayedCards() {
+    public List<Card> getPlayedCards() {
         return playedCards;
     }
 
-    public void setPlayedCards(Set<Card> playedCards) {
+    public void setPlayedCards(List<Card> playedCards) {
         this.playedCards = playedCards;
     }
 
