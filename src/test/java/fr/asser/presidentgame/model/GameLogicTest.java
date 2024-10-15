@@ -251,7 +251,7 @@ class GameLogicTest {
             game.playCards(1L, List.of(new Card("Hearts", "3")));  // Tentative de jouer une carte plus faible
         });
 
-        assertEquals("Invalid move: single card played must be of higher rank.", exception.getMessage());
+        assertEquals("Invalid move: single card played must be equal or of higher rank.", exception.getMessage());
     }
 
 }
