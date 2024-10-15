@@ -154,7 +154,7 @@ public class Game {
     private boolean allPlayersHavePassed() {
         // Ici, tu peux ajouter une logique pour vérifier si tous les joueurs sauf un ont passé
         // Par exemple, si tu as une liste ou un compteur pour les joueurs qui ont passé.
-        return players.size() - getActivePlayersCount() == 1;
+        return getActivePlayersCount() == 1;
     }
 
     private int getActivePlayersCount() {
