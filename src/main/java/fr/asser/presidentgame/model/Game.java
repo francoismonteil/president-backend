@@ -108,10 +108,23 @@ public class Game {
         cards.forEach(currentPlayer::playCard);
         playedCards.addAll(cards);
 
+        // Vérifier si un ou plusieurs "2" ont été joués
+        boolean hasTwo = cards.stream().anyMatch(card -> card.getRank().equals("2"));
+        if (hasTwo) {
+            // Le pli est terminé si un "2" est joué
+            currentPlayerIndex = players.indexOf(currentPlayer);  // Le joueur actuel gagne le pli
+            playedCards.clear();  // Réinitialiser les cartes jouées
+            resetPlayers();  // Réinitialiser le statut `hasPassed` de tous les joueurs
+            orNothingConditionActive = false;  // Désactiver la condition "Ou rien"
+            currentRequiredRank = null;  // Réinitialiser la carte requise
+            return;  // Le tour se termine ici
+        }
+
         // Vérifier si 4 cartes de même valeur ont été jouées pour terminer le pli
         if (playedCards.size() >= 4) {
             List<Card> lastFourCards = getLastPlayedCards(4);
             if (Card.areSameRank(lastFourCards)) {
+                // Si 4 cartes du même rang sont jouées, le pli est terminé
                 currentPlayerIndex = players.indexOf(currentPlayer);  // Le joueur actuel gagne le pli
                 playedCards.clear();  // Réinitialiser les cartes jouées
                 resetPlayers();  // Réinitialiser le statut `hasPassed` de tous les joueurs
@@ -121,7 +134,7 @@ public class Game {
             }
         }
 
-        // Activer la règle "Ou rien" seulement si les deux dernières cartes jouées par deux joueurs différents sont du même rang
+        // Activer la règle "Ou rien" si deux cartes consécutives du même rang ont été jouées
         if (cards.size() == 1) {  // On ne vérifie que si une carte est jouée
             if (playedCards.size() >= 2) {
                 List<Card> lastTwoCards = getLastPlayedCards(2);
