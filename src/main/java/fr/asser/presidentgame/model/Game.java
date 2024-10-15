@@ -30,6 +30,8 @@ public class Game {
     private Set<Card> playedCards = new HashSet<>();
 
     private int currentPlayerIndex = 0;
+    private boolean orNothingConditionActive = false;
+    private String currentRequiredRank = null;
 
     @ElementCollection
     @CollectionTable(name = "player_ranks", joinColumns = @JoinColumn(name = "game_id"))
@@ -92,27 +94,60 @@ public class Game {
         if (!currentPlayer.getId().equals(playerId)) {
             throw new NotPlayersTurnException(playerId);
         }
+
+        // Règle "Ou rien" : forcer à jouer une carte du même rang si applicable
+        if (orNothingConditionActive && !cards.isEmpty() && !cards.get(0).getRank().equals(currentRequiredRank)) {
+            throw new InvalidMoveException("You must play a card of rank " + currentRequiredRank + " or pass.");
+        }
+
+        // Validation du mouvement
         if (!isValidMove(cards)) {
             throw new InvalidMoveException("Invalid move: " + cards);
         }
+
         cards.forEach(currentPlayer::playCard);
         playedCards.addAll(cards);
 
-        // Vérifier si 4 cartes de même valeur ont été jouées
+        // Vérifier si 4 cartes de même valeur ont été jouées pour terminer le pli
         if (playedCards.size() >= 4) {
             List<Card> lastFourCards = getLastPlayedCards(4);
             if (Card.areSameRank(lastFourCards)) {
                 // Si 4 cartes du même rang sont jouées, le pli est terminé
                 currentPlayerIndex = players.indexOf(currentPlayer);  // Le joueur actuel gagne le pli
                 playedCards.clear();  // Réinitialiser les cartes jouées
+                orNothingConditionActive = false;  // Désactiver la condition "Ou rien"
+                currentRequiredRank = null;  // Réinitialiser la carte requise
                 return;
             }
         }
 
+        // Activer la règle "Ou rien" si deux cartes consécutives du même rang ont été jouées
+        if (cards.size() == 1) {  // On ne vérifie que si une carte est jouée
+            if (playedCards.size() >= 2) {
+                List<Card> lastTwoCards = getLastPlayedCards(2);
+                if (Card.areSameRank(lastTwoCards)) {
+                    orNothingConditionActive = true;  // Activer la règle "Ou rien"
+                    currentRequiredRank = lastTwoCards.get(0).getRank();  // Définir la carte nécessaire
+                } else {
+                    orNothingConditionActive = false;  // Désactiver si la règle n'est plus applicable
+                    currentRequiredRank = null;
+                }
+            } else {
+                orNothingConditionActive = false;  // Désactiver si pas assez de cartes jouées
+                currentRequiredRank = null;
+            }
+        } else {
+            // Si plusieurs cartes sont jouées, désactiver la condition "Ou rien"
+            orNothingConditionActive = false;
+            currentRequiredRank = null;
+        }
+
+        // Vérifier si le joueur a terminé ses cartes
         if (currentPlayer.getHand().isEmpty()) {
             ranks.put(currentPlayer, ranks.size() + 1);
         }
 
+        // Passer au joueur suivant
         currentPlayerIndex = (currentPlayerIndex + 1) % players.size();
     }
 
@@ -164,7 +199,7 @@ public class Game {
 
     private boolean isSameRankMove(List<Card> cards) {
         List<Card> lastPlayed = getLastPlayedCards(cards.size());
-        return Card.compareRank(cards.get(0), lastPlayed.get(0)) > 0;
+        return Card.compareRank(cards.get(0), lastPlayed.get(0)) >= 0;
     }
 
     private boolean isSequenceMove(List<Card> cards) {
