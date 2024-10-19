@@ -32,6 +32,8 @@ public class Game {
     private int currentPlayerIndex = 0;
     private boolean orNothingConditionActive = false;
     private String currentRequiredRank = null;
+    private boolean suiteActive = false;
+    private String currentSuiteRank = null;
 
     @ElementCollection
     @CollectionTable(name = "player_ranks", joinColumns = @JoinColumn(name = "game_id"))
@@ -87,6 +89,10 @@ public class Game {
     }
 
     public void playCards(Long playerId, List<Card> cards) {
+        playCards(playerId, cards, false);
+    }
+
+    public void playCards(Long playerId, List<Card> cards, boolean suiteOption) {
         if (state != GameState.IN_PROGRESS) {
             throw new IllegalStateException("Cannot play cards in the current game state.");
         }
@@ -100,25 +106,23 @@ public class Game {
             throw new InvalidMoveException("You must play a card of rank " + currentRequiredRank + " or pass.");
         }
 
+        // Vérification si la condition de "suite" est active et si le joueur respecte cette condition
+        if (suiteActive && !cards.isEmpty() && !isFollowingSuite(cards.get(0))) {
+            throw new InvalidMoveException("You must follow the suite or pass.");
+        }
+
         // Validation du mouvement
         if (!isValidMove(cards)) {
             throw new InvalidMoveException("Invalid move: " + cards);
         }
 
+        // Appliquer l'option "Suite" si c'est un des trois premiers joueurs et que l'option est activée
+        if (suiteOption && canTriggerSuite() && isConsecutiveToLastPlayed(cards.get(0))) {
+            activateSuite(cards.get(0));  // Activer la suite avec la carte jouée
+        }
+
         cards.forEach(currentPlayer::playCard);
         playedCards.addAll(cards);
-
-        // Vérifier si un ou plusieurs "2" ont été joués
-        boolean hasTwo = cards.stream().anyMatch(card -> card.getRank().equals("2"));
-        if (hasTwo) {
-            // Le pli est terminé si un "2" est joué
-            currentPlayerIndex = players.indexOf(currentPlayer);  // Le joueur actuel gagne le pli
-            playedCards.clear();  // Réinitialiser les cartes jouées
-            resetPlayers();  // Réinitialiser le statut `hasPassed` de tous les joueurs
-            orNothingConditionActive = false;  // Désactiver la condition "Ou rien"
-            currentRequiredRank = null;  // Réinitialiser la carte requise
-            return;  // Le tour se termine ici
-        }
 
         // Vérifier si 4 cartes de même valeur ont été jouées pour terminer le pli
         if (playedCards.size() >= 4) {
@@ -127,9 +131,10 @@ public class Game {
                 // Si 4 cartes du même rang sont jouées, le pli est terminé
                 currentPlayerIndex = players.indexOf(currentPlayer);  // Le joueur actuel gagne le pli
                 playedCards.clear();  // Réinitialiser les cartes jouées
-                resetPlayers();  // Réinitialiser le statut `hasPassed` de tous les joueurs
                 orNothingConditionActive = false;  // Désactiver la condition "Ou rien"
+                suiteActive = false;  // Désactiver la suite
                 currentRequiredRank = null;  // Réinitialiser la carte requise
+                resetPlayers();  // Réinitialiser l'état de passage des joueurs
                 return;
             }
         }
@@ -162,6 +167,28 @@ public class Game {
 
         // Passer au joueur suivant
         currentPlayerIndex = (currentPlayerIndex + 1) % players.size();
+    }
+
+    // Méthode pour vérifier si la suite peut être activée après les 3 premiers joueurs
+    private boolean canTriggerSuite() {
+        return !playedCards.isEmpty() && playedCards.size() <= 3;  // Suite activable si moins de 4 joueurs ont joué
+    }
+
+    // Méthode pour activer la suite
+    private void activateSuite(Card card) {
+        suiteActive = true;
+        currentSuiteRank = card.getRank();  // Définir le rang de la suite
+    }
+
+    // Méthode pour vérifier si la carte suit la suite active
+    private boolean isFollowingSuite(Card card) {
+        return Card.compareRank(card, new Card(card.getSuit(), currentSuiteRank)) == 1;  // La carte doit suivre immédiatement
+    }
+
+    // Méthode pour vérifier si la carte jouée est consécutive à la dernière carte jouée
+    private boolean isConsecutiveToLastPlayed(Card card) {
+        Card lastPlayed = getLastPlayedCard();
+        return Card.compareRank(card, lastPlayed) == 1;  // La carte est consécutive à la dernière carte
     }
 
     private boolean allPlayersHavePassed() {
