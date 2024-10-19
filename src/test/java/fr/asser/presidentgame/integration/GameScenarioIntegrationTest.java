@@ -101,7 +101,6 @@ class GameScenarioIntegrationTest {
         simulateTurn(0, null);  // Joueur 1 passe
         simulateTurn(1, null);  // Joueur 2 passe
 
-        // Vérification : Joueur 3 remporte le pli
         assertTrue(game.getPlayedCards().isEmpty());
         assertEquals(2, game.getCurrentPlayerIndex());
 
@@ -124,6 +123,18 @@ class GameScenarioIntegrationTest {
 
         assertTrue(game.getPlayedCards().isEmpty());
         assertEquals(0, game.getCurrentPlayerIndex());
+
+        simulateTurn(0, List.of(new Card("Clubs", "3")));
+        simulateTurn(1, List.of(new Card("Diamonds", "3")));
+        simulateTurn(2, null);
+        simulateTurn(3, List.of(new Card("Spades", "5")));
+        simulateTurn(0, List.of(new Card("Diamonds", "8")));
+        simulateTurn(1, List.of(new Card("Hearts", "Q")));
+        simulateTurn(2, null);
+        simulateTurn(3, List.of(new Card("Hearts", "2")));
+
+        assertTrue(game.getPlayedCards().isEmpty());
+        assertEquals(3, game.getCurrentPlayerIndex());
 
         // Ajouter plus de tours et de vérifications pour les autres joueurs
 

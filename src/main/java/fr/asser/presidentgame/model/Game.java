@@ -2,8 +2,8 @@ package fr.asser.presidentgame.model;
 
 import com.fasterxml.jackson.annotation.JsonBackReference;
 import fr.asser.presidentgame.exception.InvalidMoveException;
-import jakarta.persistence.*;
 import io.swagger.v3.oas.annotations.media.Schema;
+import jakarta.persistence.*;
 
 import java.util.*;
 
@@ -78,6 +78,11 @@ public class Game {
 
         if (currentPlayer.getHand().isEmpty()) {
             ranks.put(currentPlayer, ranks.size() + 1);
+
+            var remainingPlayers = players.stream().filter(player -> !player.getHand().isEmpty()).toList();
+            if (remainingPlayers.size() == 1) {
+                ranks.put(remainingPlayers.getFirst(), ranks.size() + 1);
+            }
         }
 
         // Le traitement post-pli détermine si le pli est terminé
@@ -88,7 +93,6 @@ public class Game {
         ensureState(GameState.IN_PROGRESS, "Cannot pass turn in the current game state.");
         Player currentPlayer = getCurrentPlayer(playerId);
 
-        currentPlayer.passTurn();
         handlePassLogic(currentPlayer);
         currentPlayerIndex = (currentPlayerIndex + 1) % players.size();
     }
@@ -156,9 +160,10 @@ public class Game {
             currentRequiredRank = null;
         }
 
+        currentPlayer.passTurn();
+
         if (allPlayersHavePassed()) {
-            clearPlayedCards();
-            resetPlayers();
+            resetAfterRound();
             currentPlayerIndex = getLastPlayerWhoPlayedIndex();
         }
     }
@@ -189,21 +194,24 @@ public class Game {
     }
 
     private void handlePostPlayLogic(List<Card> cards) {
-        // Vérifier si 4 cartes du même rang ont été jouées
+        if(cards.stream().anyMatch(card -> Objects.equals(card.getRank(), "2"))) {
+            resetAfterRound();
+            return;
+        }
         if (playedCards.size() >= 4 && Card.areSameRank(getLastPlayedCards(4))) {
             Player winner = determinePliWinner(getLastPlayedCards(4));
             if (winner != null) {
                 currentPlayerIndex = players.indexOf(winner); // Le vainqueur du pli prend le tour
             }
             resetAfterRound();
-        } else {
-            checkOrNothingRule(cards);
-            currentPlayerIndex = (currentPlayerIndex + 1) % players.size();
+            return;
         }
+        checkOrNothingRule(cards);
+        currentPlayerIndex = (currentPlayerIndex + 1) % players.size();
     }
 
     private Player determinePliWinner(List<Card> lastPlayedCards) {
-        Card highestCard = lastPlayedCards.get(0);
+        Card highestCard = lastPlayedCards.getLast();
         Player winner = null;
 
         // Parcourir les cartes et déterminer le joueur ayant joué la carte la plus forte
@@ -217,16 +225,11 @@ public class Game {
     }
 
     private void resetAfterRound() {
-        playedCards.clear();
-        clearPlayersPlayedCards();  // Réinitialiser les cartes jouées par chaque joueur
+        clearPlayedCards();
         orNothingConditionActive = false;
         suiteActive = false;
         currentRequiredRank = null;
         resetPlayers();  // Réinitialiser l'état de passage des joueurs
-    }
-
-    private void clearPlayersPlayedCards() {
-        players.forEach(Player::resetPlayedCards);
     }
 
     private void checkOrNothingRule(List<Card> cards) {
@@ -311,6 +314,7 @@ public class Game {
     }
 
     private void resetPlayers() {
+        players.forEach(Player::resetPlayedCards);
         players.forEach(Player::resetPassed);
     }
 
