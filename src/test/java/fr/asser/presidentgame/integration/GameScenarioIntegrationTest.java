@@ -136,13 +136,75 @@ class GameScenarioIntegrationTest {
         assertTrue(game.getPlayedCards().isEmpty());
         assertEquals(3, game.getCurrentPlayerIndex());
 
-        // Ajouter plus de tours et de vérifications pour les autres joueurs
+        simulateTurn(3, List.of(new Card("Hearts", "A"), new Card("Diamonds", "A"),
+                                          new Card("Spades", "A"), new Card("Clubs", "A")));
+
+        assertTrue(game.getPlayedCards().isEmpty());
+        assertEquals(3, game.getCurrentPlayerIndex());
+
+        simulateTurn(3, List.of(new Card("Hearts", "7")));
+        simulateTurn(0, List.of(new Card("Clubs", "Q")));
+        simulateTurn(1, List.of(new Card("Diamonds", "K")));
+        simulateTurn(2, List.of(new Card("Clubs", "2")));
+
+        assertTrue(game.getPlayedCards().isEmpty());
+        assertEquals(2, game.getCurrentPlayerIndex());
+
+        simulateTurn(2, List.of(new Card("Hearts", "6"), new Card("Diamonds", "6")));
+        simulateTurn(3, null);
+        simulateTurn(0, List.of(new Card("Clubs", "J"), new Card("Spades", "J")));
+        simulateTurn(1, List.of(new Card("Diamonds", "J"), new Card("Hearts", "J")));
+
+        assertTrue(game.getPlayedCards().isEmpty());
+        assertEquals(1, game.getCurrentPlayerIndex());
+
+        simulateTurn(1, List.of(new Card("Diamonds", "5"), new Card("Hearts", "5")));
+        simulateTurn(2, List.of(new Card("Clubs", "7"), new Card("Spades", "7")));
+        simulateTurn(3, null);
+        simulateTurn(0, null);
+        simulateTurn(1, null);
+
+        assertTrue(game.getPlayedCards().isEmpty());
+        assertEquals(2, game.getCurrentPlayerIndex());
+
+        simulateTurn(2, List.of(new Card("Diamonds", "Q"), new Card("Spades", "Q")));
+        simulateTurn(3, null);
+        simulateTurn(0, null);
+        simulateTurn(1, null);
+
+        assertTrue(game.getPlayedCards().isEmpty());
+        assertEquals(2, game.getCurrentPlayerIndex());
+
+        simulateTurn(2, List.of(new Card("Clubs", "5")));
+        simulateTurn(3, List.of(new Card("Clubs", "10")));
+        simulateTurn(0, List.of(new Card("Spades", "2")));
+
+        assertTrue(game.getPlayedCards().isEmpty());
+        assertEquals(0, game.getCurrentPlayerIndex());
+
+        simulateTurn(0, List.of(new Card("Spades", "K")));
+        simulateTurn(1, List.of(new Card("Diamonds", "2")));
+
+        assertTrue(game.getPlayedCards().isEmpty());
+        assertEquals(1, game.getCurrentPlayerIndex());
+
+        simulateTurn(1, List.of(new Card("Diamonds", "7")));
+        simulateTurn(2, List.of(new Card("Clubs", "9")));
+        simulateTurn(3, null);
+        simulateTurn(0, null);
+        simulateTurn(1, null);
+
+        assertTrue(game.getPlayedCards().isEmpty());
+        assertEquals(2, game.getCurrentPlayerIndex());
+
+        simulateTurn(2, List.of(new Card("Diamonds", "10")));
 
         // À la fin, tous les joueurs doivent avoir un rang :
-//        assertEquals(4, game.getRanks().size());  // Tous les joueurs ont un rang
-//        assertEquals(1, game.getRanks().get(game.getPlayers().get(0)));  // Premier joueur est Président
-//        assertEquals(2, game.getRanks().get(game.getPlayers().get(1)));  // Deuxième joueur est Vice-Président
-//        assertEquals(4, game.getRanks().get(game.getPlayers().get(3)));  // Dernier joueur est Trouduc
+        assertEquals(4, game.getRanks().size());  // Tous les joueurs ont un rang
+        assertEquals(1, game.getRanks().get(game.getPlayers().get(3))); //Président
+        assertEquals(2, game.getRanks().get(game.getPlayers().get(0))); //Vice-Président
+        assertEquals(3, game.getRanks().get(game.getPlayers().get(2))); //Vice-trouduc
+        assertEquals(4, game.getRanks().get(game.getPlayers().get(1))); //Trouduc
     }
 
 
