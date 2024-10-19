@@ -115,6 +115,7 @@ class GameServiceTest {
         Game game = new Game();
         Player player = new Player("Player1");
         player.setId(1L);
+        player.setHand(List.of(new Card("Hearts", "3")));
         game.getPlayers().add(player);
         game.setState(GameState.IN_PROGRESS);
         when(gameRepository.findByIdWithAssociations(anyLong())).thenReturn(Optional.of(game));
@@ -127,6 +128,26 @@ class GameServiceTest {
         verify(gameRepository, times(1)).save(game);
         verify(messagingTemplate, times(1)).convertAndSend(anyString(), any(Game.class));  // Vérifie l'envoi du message
         verify(gameLogRepository, times(1)).save(any());  // Vérifie que le log est sauvegardé
+    }
+
+    @Test
+    void testPlayCards_NotInPlayerHand() {
+        // Arrange
+        Game game = new Game();
+        Player player = new Player("Player1");
+        player.setId(1L);
+        game.getPlayers().add(player);
+        game.setState(GameState.IN_PROGRESS);
+        when(gameRepository.findByIdWithAssociations(anyLong())).thenReturn(Optional.of(game));
+        when(gameRepository.save(any(Game.class))).thenReturn(game);
+
+
+        InvalidMoveException exception = assertThrows(InvalidMoveException.class, () -> {
+            gameService.playCards(1L, player.getId(), List.of(new Card("Hearts", "3")));
+        });
+
+        assertEquals("Player does not have card Card{suit='Hearts', rank='3'} in hand", exception.getMessage());
+        verify(gameRepository, times(0)).save(game);  // Assurer que la partie n'est pas sauvegardée
     }
 
     @Test
