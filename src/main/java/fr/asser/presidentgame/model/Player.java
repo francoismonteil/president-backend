@@ -1,5 +1,6 @@
 package fr.asser.presidentgame.model;
 
+import fr.asser.presidentgame.exception.InvalidMoveException;
 import jakarta.persistence.*;
 
 import java.util.ArrayList;
@@ -56,6 +57,9 @@ public class Player {
     }
 
     public void removeCardFromHand(Card card) {
+        if(!hand.contains(card)) {
+            throw new InvalidMoveException(String.format("Player does not have card %s in hand", card));
+        }
         hand.remove(card);
     }
 
