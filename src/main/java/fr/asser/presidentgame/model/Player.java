@@ -13,14 +13,19 @@ public class Player {
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
     private Long id;
+
     private String name;
 
     @OneToMany(cascade = CascadeType.ALL, orphanRemoval = true)
     @JoinColumn(name = "player_id")
     private List<Card> hand = new ArrayList<>();
 
+    // Liste des cartes jouées par le joueur dans le pli en cours
+    @Transient // Pas besoin de stocker cette information en base de données
+    private List<Card> playedCards = new ArrayList<>();
+
     @ManyToOne
-    @JoinColumn(name = "game_id")  // Colonne de jointure pour l'association
+    @JoinColumn(name = "game_id")
     private Game game;
 
     private boolean hasPassed;  // Indicateur pour savoir si le joueur a passé son tour
@@ -56,8 +61,8 @@ public class Player {
         hand.add(card);
     }
 
-    public void removeCardFromHand(Card card) {
-        if(!hand.contains(card)) {
+    private void removeCardFromHand(Card card) {
+        if (!hand.contains(card)) {
             throw new InvalidMoveException(String.format("Player does not have card %s in hand", card));
         }
         hand.remove(card);
@@ -65,7 +70,13 @@ public class Player {
 
     public void playCard(Card card) {
         removeCardFromHand(card);
+        playedCards.add(card);  // Enregistrer la carte jouée
         this.hasPassed = false;  // Le joueur ne passe pas s'il joue une carte
+    }
+
+    public boolean hasPlayedCard(Card card) {
+        // Vérifier si la carte a été jouée par ce joueur
+        return playedCards.contains(card);
     }
 
     public void passTurn() {
@@ -78,6 +89,10 @@ public class Player {
 
     public void resetPassed() {
         this.hasPassed = false;  // Réinitialiser à chaque début de nouveau pli
+    }
+
+    public void resetPlayedCards() {
+        playedCards.clear();  // Réinitialiser la liste des cartes jouées à la fin du pli
     }
 
     public List<Card> getSortedCards(int count, Comparator<Card> comparator, boolean ascending) {

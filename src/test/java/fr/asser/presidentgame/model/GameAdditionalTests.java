@@ -51,7 +51,7 @@ class GameAdditionalTests {
         game.setState(GameState.IN_PROGRESS);
 
         // Act
-        game.playCards(1L, List.of(new Card("Hearts", "3")));
+        game.playCards(1L, List.of(new Card("Hearts", "3")), false);
 
         // Assert
         assertEquals(1, player1.getHand().size());  // The player should still have one card left

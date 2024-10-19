@@ -1,7 +1,6 @@
 package fr.asser.presidentgame.model;
 
 import fr.asser.presidentgame.exception.InvalidMoveException;
-import fr.asser.presidentgame.exception.NotPlayersTurnException;
 import static org.junit.jupiter.api.Assertions.*;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -125,7 +124,7 @@ class GameLogicTest {
         IllegalStateException exception = assertThrows(IllegalStateException.class, () -> {
             game.distributeCards();
         });
-        assertEquals("Cannot distribute cards in the current state: IN_PROGRESS", exception.getMessage());
+        assertEquals("Cannot distribute cards in the current state.", exception.getMessage());
     }
 
     @Test
@@ -148,11 +147,11 @@ class GameLogicTest {
         game.getPlayers().add(player2);
         game.setState(GameState.IN_PROGRESS);
 
-        NotPlayersTurnException exception = assertThrows(NotPlayersTurnException.class, () -> {
-            game.playCards(2L, List.of(new Card("Hearts", "3")));
+        IllegalStateException exception = assertThrows(IllegalStateException.class, () -> {
+            game.playCards(2L, List.of(new Card("Hearts", "3")), false);
         });
 
-        assertEquals("It's not player 2's turn.", exception.getMessage());
+        assertEquals("Not this player's turn", exception.getMessage());
     }
 
     @Test
@@ -181,7 +180,7 @@ class GameLogicTest {
             game.getLastPlayedCards(2);  // Demande 2 cartes alors qu'une seule a été jouée
         });
 
-        assertEquals("Invalid move: not enough cards have been played previously for comparison.", exception.getMessage());
+        assertEquals("Not enough cards have been played for comparison.", exception.getMessage());
     }
 
     @Test
@@ -207,7 +206,7 @@ class GameLogicTest {
         game.setState(GameState.INITIALIZED);  // Pas l'état correct pour jouer des cartes
 
         IllegalStateException exception = assertThrows(IllegalStateException.class, () -> {
-            game.playCards(1L, List.of(new Card("Hearts", "3")));
+            game.playCards(1L, List.of(new Card("Hearts", "3")), false);
         });
 
         assertEquals("Cannot play cards in the current game state.", exception.getMessage());
@@ -249,10 +248,10 @@ class GameLogicTest {
 
         // Act & Assert
         InvalidMoveException exception = assertThrows(InvalidMoveException.class, () -> {
-            game.playCards(1L, List.of(new Card("Hearts", "3")));  // Tentative de jouer une carte plus faible
+            game.playCards(1L, List.of(new Card("Hearts", "3")), false);  // Tentative de jouer une carte plus faible
         });
 
-        assertEquals("Invalid move: single card played must be equal or of higher rank.", exception.getMessage());
+        assertEquals("Invalid move: [Card{suit='Hearts', rank='3'}]", exception.getMessage());
     }
 
 }

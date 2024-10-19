@@ -56,7 +56,7 @@ public class GameService {
     public void playCards(Long gameId, Long playerId, List<Card> cards) {
         Game game = getGame(gameId);
         validateGameAndPlayerAccess(game, playerId); // Validation consolidée
-        game.playCards(playerId, cards);
+        game.playCards(playerId, cards, false);
         Game updatedGame = gameRepository.save(game);
         messagingTemplate.convertAndSend("/topic/gameState", updatedGame);
         logGameAction(gameId, playerId, "Played cards: " + cards); // Log centralisé

@@ -2,9 +2,8 @@ package fr.asser.presidentgame.model;
 
 import com.fasterxml.jackson.annotation.JsonBackReference;
 import fr.asser.presidentgame.exception.InvalidMoveException;
-import fr.asser.presidentgame.exception.NotPlayersTurnException;
-import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.persistence.*;
+import io.swagger.v3.oas.annotations.media.Schema;
 
 import java.util.*;
 
@@ -20,20 +19,14 @@ public class Game {
     @JoinColumn(name = "user_id")
     private AppUser appUser;
 
-    @OneToMany(mappedBy = "game", cascade = CascadeType.ALL, orphanRemoval = true)  // Relation correcte
+    @OneToMany(mappedBy = "game", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Player> players = new ArrayList<>();
 
     @OneToMany(cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
-    private Set<Card> deck = new HashSet<>();
+    private Set<Card> deck = new LinkedHashSet<>();
 
     @OneToMany(cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
     private List<Card> playedCards = new ArrayList<>();
-
-    private int currentPlayerIndex = 0;
-    private boolean orNothingConditionActive = false;
-    private String currentRequiredRank = null;
-    private boolean suiteActive = false;
-    private String currentSuiteRank = null;
 
     @ElementCollection
     @CollectionTable(name = "player_ranks", joinColumns = @JoinColumn(name = "game_id"))
@@ -47,46 +40,127 @@ public class Game {
     @Enumerated(EnumType.STRING)
     private GameState state = GameState.INITIALIZED;
 
+    private int currentPlayerIndex = 0;
+    private boolean orNothingConditionActive = false;
+    private String currentRequiredRank = null;
+    private boolean suiteActive = false;
+    private String currentSuiteRank = null;
+
     public Game() {
         initializeDeck();
     }
 
-    public Boolean getIsSaved() {
-        return isSaved;
-    }
-
-    public void setIsSaved(Boolean isSaved) {
-        this.isSaved = isSaved;
-    }
-
+    // Méthodes liées au jeu
     public void startGame() {
-        if (state != GameState.INITIALIZED) {
-            throw new IllegalStateException("Game cannot be started in the current state: " + state);
-        }
+        ensureState(GameState.INITIALIZED, "Game cannot be started in the current state.");
         state = GameState.IN_PROGRESS;
     }
 
     public void distributeCards() {
-        if (state != GameState.INITIALIZED) {
-            throw new IllegalStateException("Cannot distribute cards in the current state: " + state);
-        }
+        ensureState(GameState.INITIALIZED, "Cannot distribute cards in the current state.");
         initializeDeck();
-        Iterator<Card> deckIterator = deck.iterator();
-        while (deckIterator.hasNext()) {
-            for (Player player : players) {
-                if (deckIterator.hasNext()) {
-                    player.addCardToHand(deckIterator.next());
-                }
-            }
-        }
+        distributeDeckToPlayers();
         state = GameState.IN_PROGRESS;
     }
 
     public void endGame() {
-        if (state != GameState.IN_PROGRESS) {
-            throw new IllegalStateException("Game cannot be ended in the current state: " + state);
-        }
+        ensureState(GameState.IN_PROGRESS, "Game cannot be ended in the current state.");
         state = GameState.FINISHED;
+    }
+
+    public void playCards(Long playerId, List<Card> cards, boolean suiteOption) {
+        ensureState(GameState.IN_PROGRESS, "Cannot play cards in the current game state.");
+        Player currentPlayer = getCurrentPlayer(playerId);
+
+        validatePlayConditions(cards);
+        handleSuiteOption(suiteOption, cards);
+        processPlayerMove(currentPlayer, cards);
+
+        if (currentPlayer.getHand().isEmpty()) {
+            ranks.put(currentPlayer, ranks.size() + 1);
+        }
+
+        // Le traitement post-pli détermine si le pli est terminé
+        handlePostPlayLogic(cards);
+    }
+
+    public void passTurn(Long playerId) {
+        ensureState(GameState.IN_PROGRESS, "Cannot pass turn in the current game state.");
+        Player currentPlayer = getCurrentPlayer(playerId);
+
+        currentPlayer.passTurn();
+        handlePassLogic(currentPlayer);
+        currentPlayerIndex = (currentPlayerIndex + 1) % players.size();
+    }
+
+    public void redistributeCards() {
+        ensureState(GameState.DISTRIBUTING_CARDS, "Cannot redistribute cards in the current game state.");
+        performCardRedistribution();
+    }
+
+    public void calculateRanks() {
+        int rank = 1;  // Commence à 1 pour le Président
+        for (Player player : players) {
+            if (player.getHand().isEmpty()) {
+                ranks.put(player, rank);  // Assigner un rang au joueur
+                rank++;
+            }
+        }
+    }
+
+    // Méthodes utilitaires privées
+    private void ensureState(GameState expectedState, String errorMessage) {
+        if (state != expectedState) {
+            throw new IllegalStateException(errorMessage);
+        }
+    }
+
+    private Player getCurrentPlayer(Long playerId) {
+        Player currentPlayer = players.get(currentPlayerIndex);
+        if (!currentPlayer.getId().equals(playerId)) {
+            throw new IllegalStateException("Not this player's turn");
+        }
+        return currentPlayer;
+    }
+
+    private void validatePlayConditions(List<Card> cards) {
+        // Validation des règles du jeu
+        if (orNothingConditionActive && !cards.isEmpty() && !cards.get(0).getRank().equals(currentRequiredRank)) {
+            throw new InvalidMoveException("You must play a card of rank " + currentRequiredRank + " or pass.");
+        }
+
+        if (suiteActive && !cards.isEmpty() && !isFollowingSuite(cards.get(0))) {
+            throw new InvalidMoveException("You must follow the suite or pass.");
+        }
+
+        if (!isValidMove(cards)) {
+            throw new InvalidMoveException("Invalid move: " + cards);
+        }
+    }
+
+    private void processPlayerMove(Player currentPlayer, List<Card> cards) {
+        cards.forEach(currentPlayer::playCard);
+        playedCards.addAll(cards);
+    }
+
+    private void handleSuiteOption(boolean suiteOption, List<Card> cards) {
+        if (suiteOption && canTriggerSuite() && isConsecutiveToLastPlayed(cards.get(0))) {
+            activateSuite(cards.get(0));
+        }
+    }
+
+    private void handlePassLogic(Player currentPlayer) {
+        boolean alreadyPassed = currentPlayer.hasPassed();
+        if (orNothingConditionActive && !alreadyPassed) {
+            orNothingConditionActive = false;
+            currentRequiredRank = null;
+        }
+
+        if (allPlayersHavePassed()) {
+            clearPlayedCards();
+            resetPlayers();
+            currentPlayerIndex = getLastPlayerWhoPlayedIndex();
+        }
     }
 
     private void initializeDeck() {
@@ -100,222 +174,151 @@ public class Game {
         }
         List<Card> deckList = new ArrayList<>(deck);
         Collections.shuffle(deckList);
-        deck = new HashSet<>(deckList);
+        deck = new LinkedHashSet<>(deckList);
     }
 
-    public void playCards(Long playerId, List<Card> cards) {
-        playCards(playerId, cards, false);
-    }
-
-    public void playCards(Long playerId, List<Card> cards, boolean suiteOption) {
-        if (state != GameState.IN_PROGRESS) {
-            throw new IllegalStateException("Cannot play cards in the current game state.");
-        }
-        Player currentPlayer = players.get(currentPlayerIndex);
-        if (!currentPlayer.getId().equals(playerId)) {
-            throw new NotPlayersTurnException(playerId);
-        }
-
-        // Règle "Ou rien" : forcer à jouer une carte du même rang si applicable
-        if (orNothingConditionActive && !cards.isEmpty() && !cards.get(0).getRank().equals(currentRequiredRank)) {
-            throw new InvalidMoveException("You must play a card of rank " + currentRequiredRank + " or pass.");
-        }
-
-        // Vérification si la condition de "suite" est active et si le joueur respecte cette condition
-        if (suiteActive && !cards.isEmpty() && !isFollowingSuite(cards.get(0))) {
-            throw new InvalidMoveException("You must follow the suite or pass.");
-        }
-
-        // Validation du mouvement
-        if (!isValidMove(cards)) {
-            throw new InvalidMoveException("Invalid move: " + cards);
-        }
-
-        // Appliquer l'option "Suite" si c'est un des trois premiers joueurs et que l'option est activée
-        if (suiteOption && canTriggerSuite() && isConsecutiveToLastPlayed(cards.get(0))) {
-            activateSuite(cards.get(0));  // Activer la suite avec la carte jouée
-        }
-
-        cards.forEach(currentPlayer::playCard);
-        playedCards.addAll(cards);
-
-        // Vérifier si 4 cartes de même valeur ont été jouées pour terminer le pli
-        if (playedCards.size() >= 4) {
-            List<Card> lastFourCards = getLastPlayedCards(4);
-            if (Card.areSameRank(lastFourCards)) {
-                // Si 4 cartes du même rang sont jouées, le pli est terminé
-                currentPlayerIndex = players.indexOf(currentPlayer);  // Le joueur actuel gagne le pli
-                playedCards.clear();  // Réinitialiser les cartes jouées
-                orNothingConditionActive = false;  // Désactiver la condition "Ou rien"
-                suiteActive = false;  // Désactiver la suite
-                currentRequiredRank = null;  // Réinitialiser la carte requise
-                resetPlayers();  // Réinitialiser l'état de passage des joueurs
-                return;
+    private void distributeDeckToPlayers() {
+        Iterator<Card> deckIterator = deck.iterator();
+        while (deckIterator.hasNext()) {
+            for (Player player : players) {
+                if (deckIterator.hasNext()) {
+                    player.addCardToHand(deckIterator.next());
+                }
             }
         }
+    }
 
-        // Activer la règle "Ou rien" si deux cartes consécutives du même rang ont été jouées
-        if (cards.size() == 1) {  // On ne vérifie que si une carte est jouée
-            if (playedCards.size() >= 2) {
-                List<Card> lastTwoCards = getLastPlayedCards(2);
-                if (Card.areSameRank(lastTwoCards)) {
-                    orNothingConditionActive = true;  // Activer la règle "Ou rien"
-                    currentRequiredRank = lastTwoCards.get(0).getRank();  // Définir la carte nécessaire
-                } else {
-                    orNothingConditionActive = false;  // Désactiver si la règle n'est plus applicable
-                    currentRequiredRank = null;
-                }
+    private void handlePostPlayLogic(List<Card> cards) {
+        // Vérifier si 4 cartes du même rang ont été jouées
+        if (playedCards.size() >= 4 && Card.areSameRank(getLastPlayedCards(4))) {
+            Player winner = determinePliWinner(getLastPlayedCards(4));
+            if (winner != null) {
+                currentPlayerIndex = players.indexOf(winner); // Le vainqueur du pli prend le tour
+            }
+            resetAfterRound();
+        } else {
+            checkOrNothingRule(cards);
+            currentPlayerIndex = (currentPlayerIndex + 1) % players.size();
+        }
+    }
+
+    private Player determinePliWinner(List<Card> lastPlayedCards) {
+        Card highestCard = lastPlayedCards.get(0);
+        Player winner = null;
+
+        // Parcourir les cartes et déterminer le joueur ayant joué la carte la plus forte
+        for (Player player : players) {
+            if (player.hasPlayedCard(highestCard)) {
+                winner = player;
+                break;
+            }
+        }
+        return winner;
+    }
+
+    private void resetAfterRound() {
+        playedCards.clear();
+        clearPlayersPlayedCards();  // Réinitialiser les cartes jouées par chaque joueur
+        orNothingConditionActive = false;
+        suiteActive = false;
+        currentRequiredRank = null;
+        resetPlayers();  // Réinitialiser l'état de passage des joueurs
+    }
+
+    private void clearPlayersPlayedCards() {
+        players.forEach(Player::resetPlayedCards);
+    }
+
+    private void checkOrNothingRule(List<Card> cards) {
+        if (cards.size() == 1) {
+            if (playedCards.size() >= 2 && Card.areSameRank(getLastPlayedCards(2))) {
+                orNothingConditionActive = true;
+                currentRequiredRank = playedCards.get(playedCards.size() - 1).getRank();
             } else {
-                orNothingConditionActive = false;  // Désactiver si pas assez de cartes jouées
+                orNothingConditionActive = false;
                 currentRequiredRank = null;
             }
         } else {
-            // Si plusieurs cartes sont jouées, désactiver la condition "Ou rien"
             orNothingConditionActive = false;
             currentRequiredRank = null;
         }
-
-        // Vérifier si le joueur a terminé ses cartes
-        if (currentPlayer.getHand().isEmpty()) {
-            ranks.put(currentPlayer, ranks.size() + 1);
-        }
-
-        // Passer au joueur suivant
-        currentPlayerIndex = (currentPlayerIndex + 1) % players.size();
-    }
-
-    // Méthode pour vérifier si la suite peut être activée après les 3 premiers joueurs
-    private boolean canTriggerSuite() {
-        return !playedCards.isEmpty() && playedCards.size() <= 3;  // Suite activable si moins de 4 joueurs ont joué
-    }
-
-    // Méthode pour activer la suite
-    private void activateSuite(Card card) {
-        suiteActive = true;
-        currentSuiteRank = card.getRank();  // Définir le rang de la suite
-    }
-
-    // Méthode pour vérifier si la carte suit la suite active
-    private boolean isFollowingSuite(Card card) {
-        return Card.compareRank(card, new Card(card.getSuit(), currentSuiteRank)) == 1;  // La carte doit suivre immédiatement
-    }
-
-    // Méthode pour vérifier si la carte jouée est consécutive à la dernière carte jouée
-    private boolean isConsecutiveToLastPlayed(Card card) {
-        Card lastPlayed = getLastPlayedCard();
-        return Card.compareRank(card, lastPlayed) == 1;  // La carte est consécutive à la dernière carte
     }
 
     private boolean allPlayersHavePassed() {
-        // Ici, tu peux ajouter une logique pour vérifier si tous les joueurs sauf un ont passé
-        // Par exemple, si tu as une liste ou un compteur pour les joueurs qui ont passé.
         return getActivePlayersCount() == 1;
     }
 
     private int getActivePlayersCount() {
-        // Retourne le nombre de joueurs qui n'ont pas encore passé leur tour dans ce pli
-        // Tu devras maintenir cet état quelque part (par exemple, avec un compteur ou un flag)
         return (int) players.stream().filter(player -> !player.hasPassed()).count();
     }
 
-    private void clearPlayedCards() {
-        playedCards.clear();  // Vider les cartes jouées à la fin d'un pli
+    protected List<Card> getLastPlayedCards(int count) {
+        if (playedCards.size() < count) {
+            throw new InvalidMoveException("Not enough cards have been played for comparison.");
+        }
+        return playedCards.subList(playedCards.size() - count, playedCards.size());
     }
 
-    private int getLastPlayerWhoPlayedIndex() {
-        // Logique pour obtenir l'index du dernier joueur qui a joué (et non passé)
-        return currentPlayerIndex;  // À adapter selon ta logique
-    }
+    protected boolean isValidMove(List<Card> cards) {
+        if (playedCards.isEmpty()) return true;
 
-    public boolean isValidMove(List<Card> cards) {
-        if (playedCards.isEmpty()) {
-            return true;
-        }
+        if (cards.size() == 1) return isSingleCardMoveValid(cards);
+        if (Card.areSameRank(cards)) return isSameRankMove(cards);
+        if (cards.size() > 1 && Card.isSequence(cards)) return isSequenceMove(cards);
 
-        if (cards.size() == 1) {
-            return isSingleCardMoveValid(cards);
-        }
-        if (Card.areSameRank(cards)) {
-            return isSameRankMove(cards);
-        }
-        if (cards.size() > 1 && Card.isSequence(cards)) {
-            return isSequenceMove(cards);
-        }
         throw new InvalidMoveException("Invalid move: unsupported card combination.");
     }
 
     private boolean isSingleCardMoveValid(List<Card> cards) {
-        Card lastPlayed = getLastPlayedCard();
-        if (Card.compareRank(cards.get(0), lastPlayed) < 0) {
-            throw new InvalidMoveException("Invalid move: single card played must be equal or of higher rank.");
-        }
-        return true;
+        return Card.compareRank(cards.get(0), getLastPlayedCard()) >= 0;
     }
 
     private boolean isSameRankMove(List<Card> cards) {
-        List<Card> lastPlayed = getLastPlayedCards(cards.size());
-        return Card.compareRank(cards.get(0), lastPlayed.get(0)) >= 0;
+        return Card.compareRank(cards.get(0), getLastPlayedCards(cards.size()).get(0)) >= 0;
     }
 
     private boolean isSequenceMove(List<Card> cards) {
         List<Card> lastPlayed = getLastPlayedCards(cards.size());
         if (!Card.isSequence(lastPlayed)) {
-            throw new InvalidMoveException("Invalid move: last played cards are not a sequence.");
+            throw new InvalidMoveException("Last played cards are not a sequence.");
         }
-        if (Card.compareRank(cards.get(0), lastPlayed.get(0)) <= 0) {
-            throw new InvalidMoveException("Invalid move: sequence must be of higher rank.");
-        }
-        return true;
-    }
-
-    List<Card> getLastPlayedCards(int count) {
-        if (playedCards.size() < count) {
-            throw new InvalidMoveException("Invalid move: not enough cards have been played previously for comparison.");
-        }
-        return playedCards.subList(playedCards.size() - count, playedCards.size());
+        return Card.compareRank(cards.get(0), lastPlayed.get(0)) > 0;
     }
 
     private Card getLastPlayedCard() {
-        return new ArrayList<>(playedCards).get(playedCards.size() - 1);
+        return playedCards.get(playedCards.size() - 1);
     }
 
-    public void passTurn(Long playerId) {
-        if (state != GameState.IN_PROGRESS) {
-            throw new IllegalStateException("Cannot pass turn in the current game state.");
-        }
-        Player currentPlayer = players.get(currentPlayerIndex);
-        if (!currentPlayer.getId().equals(playerId)) {
-            throw new IllegalStateException("Not this player's turn");
-        }
-
-        // Si le joueur a déjà passé, il ne peut pas réinitialiser "Ou rien" en passant à nouveau
-        boolean alreadyPassed = currentPlayer.hasPassed();
-        currentPlayer.passTurn();  // Marquer que le joueur passe son tour
-
-        // Passer au joueur suivant
-        currentPlayerIndex = (currentPlayerIndex + 1) % players.size();
-
-        // Si un joueur passe pendant "Ou rien" et qu'il n'avait pas encore passé, réinitialiser "Ou rien"
-        if (orNothingConditionActive && !alreadyPassed) {
-            orNothingConditionActive = false;  // Désactiver la condition "Ou rien"
-            currentRequiredRank = null;  // Réinitialiser la carte requise
-        }
-
-        // Vérifier si tous les joueurs sauf un ont passé
-        if (allPlayersHavePassed()) {
-            clearPlayedCards();  // Réinitialiser les cartes jouées
-            resetPlayers();  // Réinitialiser l'état de passage des joueurs
-            currentPlayerIndex = getLastPlayerWhoPlayedIndex();  // Revenir au dernier joueur qui a joué
-        }
+    private boolean isFollowingSuite(Card card) {
+        return Card.compareRank(card, new Card(card.getSuit(), currentSuiteRank)) == 1;
     }
+
+    private boolean isConsecutiveToLastPlayed(Card card) {
+        return Card.compareRank(card, getLastPlayedCard()) == 1;
+    }
+
+    private boolean canTriggerSuite() {
+        return !playedCards.isEmpty() && playedCards.size() <= 3;
+    }
+
+    private void activateSuite(Card card) {
+        suiteActive = true;
+        currentSuiteRank = card.getRank();
+    }
+
+    private void clearPlayedCards() {
+        playedCards.clear();
+    }
+
     private void resetPlayers() {
-        players.forEach(Player::resetPassed);  // Réinitialiser l'état de passage des joueurs
+        players.forEach(Player::resetPassed);
     }
 
-    public void redistributeCards() {
-        if (state != GameState.DISTRIBUTING_CARDS) {
-            throw new IllegalStateException("Cannot redistribute cards in the current game state.");
-        }
+    private int getLastPlayerWhoPlayedIndex() {
+        return currentPlayerIndex;
+    }
+
+    private void performCardRedistribution() {
         Player president = getPlayerByRank(1);
         Player vicePresident = getPlayerByRank(2);
         Player trouduc = getPlayerByRank(players.size());
@@ -331,15 +334,14 @@ public class Game {
     }
 
     private Player getPlayerByRank(int rank) {
-        return ranks.entrySet()
-                .stream()
+        return ranks.entrySet().stream()
                 .filter(entry -> entry.getValue() == rank)
                 .map(Map.Entry::getKey)
                 .findFirst()
                 .orElse(null);
     }
 
-    void exchangeCards(Player highRank, Player lowRank, int count) {
+    protected void exchangeCards(Player highRank, Player lowRank, int count) {
         List<Card> lowRankCards = lowRank.getSortedCards(count, Card::compareRank, false);
         List<Card> highRankCards = highRank.getSortedCards(count, Card::compareRank, true);
 
@@ -350,16 +352,7 @@ public class Game {
         lowRank.getHand().addAll(highRankCards);
     }
 
-    public void calculateRanks() {
-        int rank = 1;  // Commence à 1 pour le Président
-        for (Player player : players) {
-            if (player.getHand().isEmpty()) {
-                ranks.put(player, rank);  // Assigner un rang au joueur
-                rank++;
-            }
-        }
-    }
-
+    // Getters et setters
     public Long getId() {
         return id;
     }
@@ -378,7 +371,7 @@ public class Game {
 
     public void addPlayer(Player player) {
         players.add(player);
-        player.setGame(this);  // Associe le joueur à la partie
+        player.setGame(this);
     }
 
     public Set<Card> getDeck() {
@@ -427,5 +420,13 @@ public class Game {
 
     public void setState(GameState state) {
         this.state = state;
+    }
+
+    public Boolean getIsSaved() {
+        return isSaved;
+    }
+
+    public void setIsSaved(Boolean saved) {
+        isSaved = saved;
     }
 }
