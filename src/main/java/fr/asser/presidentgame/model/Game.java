@@ -59,33 +59,48 @@ public class Game {
         this.isSaved = isSaved;
     }
 
+    public void startGame() {
+        if (state != GameState.INITIALIZED) {
+            throw new IllegalStateException("Game cannot be started in the current state: " + state);
+        }
+        state = GameState.IN_PROGRESS;
+    }
+
+    public void distributeCards() {
+        if (state != GameState.INITIALIZED) {
+            throw new IllegalStateException("Cannot distribute cards in the current state: " + state);
+        }
+        initializeDeck();
+        Iterator<Card> deckIterator = deck.iterator();
+        while (deckIterator.hasNext()) {
+            for (Player player : players) {
+                if (deckIterator.hasNext()) {
+                    player.addCardToHand(deckIterator.next());
+                }
+            }
+        }
+        state = GameState.IN_PROGRESS;
+    }
+
+    public void endGame() {
+        if (state != GameState.IN_PROGRESS) {
+            throw new IllegalStateException("Game cannot be ended in the current state: " + state);
+        }
+        state = GameState.FINISHED;
+    }
+
     private void initializeDeck() {
         String[] suits = {"Hearts", "Diamonds", "Clubs", "Spades"};
         String[] ranks = {"3", "4", "5", "6", "7", "8", "9", "10", "J", "Q", "K", "A", "2"};
+        deck.clear();
         for (String suit : suits) {
             for (String rank : ranks) {
                 deck.add(new Card(suit, rank));
             }
         }
-        var deckList = new ArrayList<>(deck.stream().toList());
+        List<Card> deckList = new ArrayList<>(deck);
         Collections.shuffle(deckList);
         deck = new HashSet<>(deckList);
-    }
-
-    public void distributeCards() {
-        if (state != GameState.INITIALIZED) {
-            throw new IllegalStateException("Cannot distribute cards in the current game state.");
-        }
-        state = GameState.DISTRIBUTING_CARDS;
-        Iterator<Card> deckIterator = deck.iterator();
-        while (deckIterator.hasNext()) {
-            for (Player player : players) {
-                if (deckIterator.hasNext()) {
-                    player.getHand().add(deckIterator.next());
-                }
-            }
-        }
-        state = GameState.IN_PROGRESS;
     }
 
     public void playCards(Long playerId, List<Card> cards) {

@@ -112,6 +112,7 @@ class GameLogicTest {
     void testDistributeCards_EmptyDeck() {
         game.setState(GameState.INITIALIZED);
         game.getDeck().clear();  // Assure que le deck est vide
+        game.setPlayers(List.of(new Player("Player1")));
 
         game.distributeCards();  // Il ne devrait pas y avoir d'erreur même si le deck est vide
 
@@ -124,7 +125,7 @@ class GameLogicTest {
         IllegalStateException exception = assertThrows(IllegalStateException.class, () -> {
             game.distributeCards();
         });
-        assertEquals("Cannot distribute cards in the current game state.", exception.getMessage());
+        assertEquals("Cannot distribute cards in the current state: IN_PROGRESS", exception.getMessage());
     }
 
     @Test
