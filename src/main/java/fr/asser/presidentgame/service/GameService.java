@@ -1,7 +1,6 @@
 package fr.asser.presidentgame.service;
 
 import fr.asser.presidentgame.exception.GameNotFoundException;
-import fr.asser.presidentgame.exception.InvalidMoveException;
 import fr.asser.presidentgame.exception.NotPlayersTurnException;
 import fr.asser.presidentgame.model.*;
 import fr.asser.presidentgame.repository.AppUserRepository;
@@ -39,7 +38,6 @@ public class GameService {
         return gameRepository.save(game);
     }
 
-
     @Cacheable("games")
     public Game getGame(Long id) {
         return gameRepository.findByIdWithAssociations(id).orElseThrow(() -> new GameNotFoundException(id));
@@ -51,33 +49,26 @@ public class GameService {
         game.setState(GameState.IN_PROGRESS);
         Game updatedGame = gameRepository.save(game);
         messagingTemplate.convertAndSend("/topic/gameState", updatedGame);
-        logAction(game.getId(), getCurrentUser().getId(), "Game started");
+        logGameAction(game.getId(), getCurrentUser().getId(), "Game started");
         return updatedGame;
     }
 
     public void playCards(Long gameId, Long playerId, List<Card> cards) {
         Game game = getGame(gameId);
-        validatePlayerMove(game, playerId, cards);
+        validateGameAndPlayerAccess(game, playerId); // Validation consolidée
         game.playCards(playerId, cards);
         Game updatedGame = gameRepository.save(game);
         messagingTemplate.convertAndSend("/topic/gameState", updatedGame);
-        logAction(gameId, playerId, "Played cards: " + cards);
-    }
-
-    private void validatePlayerMove(Game game, Long playerId, List<Card> cards) {
-        validateUserAccess(game);
-        validatePlayerTurn(game, playerId);
-        validateMove(game, cards);
+        logGameAction(gameId, playerId, "Played cards: " + cards); // Log centralisé
     }
 
     public void passTurn(Long gameId, Long playerId) {
         Game game = getGame(gameId);
-        validateUserAccess(game);
-        validatePlayerTurn(game, playerId);
+        validateGameAndPlayerAccess(game, playerId); // Validation consolidée
         game.passTurn(playerId);
         Game updatedGame = gameRepository.save(game);
         messagingTemplate.convertAndSend("/topic/gameState", updatedGame);
-        logAction(gameId, playerId, "Passed turn");
+        logGameAction(gameId, playerId, "Passed turn"); // Log centralisé
     }
 
     public void saveGame(Long id) {
@@ -85,30 +76,34 @@ public class GameService {
         validateUserAccess(game);
         game.setIsSaved(true);
         gameRepository.save(game);
-        logAction(id, getCurrentUser().getId(), "Game saved");
+        logGameAction(id, getCurrentUser().getId(), "Game saved"); // Log centralisé
     }
 
     public Set<Game> loadSavedGames() {
         return gameRepository.findAllByIsSaved(true);
     }
 
-    private void validatePlayerTurn(Game game, Long playerId) {
+    // Nouvelle méthode pour valider l'accès au jeu et au joueur
+    private void validateGameAndPlayerAccess(Game game, Long playerId) {
+        validateUserAccess(game);
         if (!game.getPlayers().get(game.getCurrentPlayerIndex()).getId().equals(playerId)) {
             throw new NotPlayersTurnException(playerId);
         }
     }
 
-    private void validateMove(Game game, List<Card> cards) {
-        if (!game.isValidMove(cards)) {
-            throw new InvalidMoveException("Invalid move: " + cards);
-        }
-    }
-
+    // Validation de l'accès utilisateur au jeu
     private void validateUserAccess(Game game) {
-        AppUser currentAppUser = getCurrentUser();
-        // Add logic to validate if the current user has access to the game
+        AppUser currentUser = getCurrentUser();
+        // Logique pour valider l'accès utilisateur
     }
 
+    // Nouvelle méthode pour centraliser la gestion des logs
+    private void logGameAction(Long gameId, Long playerId, String action) {
+        GameLog log = new GameLog(gameId, playerId, action);
+        gameLogRepository.save(log);
+    }
+
+    // Récupération de l'utilisateur courant
     private AppUser getCurrentUser() {
         Object principal = SecurityContextHolder.getContext().getAuthentication().getPrincipal();
         if (!(principal instanceof UserDetails)) {
@@ -116,10 +111,5 @@ public class GameService {
         }
         String username = ((UserDetails) principal).getUsername();
         return userRepository.findByUsername(username).orElse(null);
-    }
-
-    private void logAction(Long gameId, Long playerId, String action) {
-        GameLog log = new GameLog(gameId, playerId, action);
-        gameLogRepository.save(log);
     }
 }

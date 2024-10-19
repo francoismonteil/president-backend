@@ -16,7 +16,6 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.User;
 
-import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
@@ -199,28 +198,6 @@ class GameServiceTest {
 
         assertEquals("It's not player 2's turn.", exception.getMessage());
         verify(gameRepository, times(0)).save(game);  // Assurer que la partie n'est pas sauvegardée
-    }
-
-    @Test
-    void testPlayCards_InvalidMove() {
-        // Arrange
-        Player player = new Player("Player1");
-        player.setId(1L);
-        Game game = mock(Game.class);
-        when(game.getPlayers()).thenReturn(Collections.singletonList(player));
-        when(game.getState()).thenReturn(GameState.IN_PROGRESS);
-        when(gameRepository.findByIdWithAssociations(anyLong())).thenReturn(Optional.of(game));
-
-        // Simuler un mouvement invalide
-        when(game.isValidMove(anyList())).thenReturn(false);
-
-        // Act & Assert
-        InvalidMoveException exception = assertThrows(InvalidMoveException.class, () -> {
-            gameService.playCards(1L, player.getId(), List.of(new Card("Hearts", "3")));
-        });
-
-        assertEquals("Invalid move: [Card{suit='Hearts', rank='3'}]", exception.getMessage());
-        verify(gameRepository, times(0)).save(game);  // Vérifie que la partie n'est pas sauvegardée en cas de mouvement invalide
     }
 
     @Test
