@@ -1,10 +1,11 @@
-package fr.asser.presidentgame.service;
+package fr.asser.presidentgame.integration;
 
 import fr.asser.presidentgame.model.Card;
 import fr.asser.presidentgame.model.Game;
 import fr.asser.presidentgame.model.GameState;
 import fr.asser.presidentgame.model.Player;
 import fr.asser.presidentgame.repository.GameRepository;
+import fr.asser.presidentgame.service.GameService;
 import static org.junit.jupiter.api.Assertions.*;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -34,14 +35,53 @@ class GameScenarioIntegrationTest {
     }
 
     @Test
-    void testSinglePli() {
+    void testCompleteGame() {
         // Phase 1: Initialisation et distribution des cartes
         assertNotNull(game);
         assertEquals(4, game.getPlayers().size());
         assertEquals(GameState.INITIALIZED, game.getState());
 
-        // Distribution des cartes
-        game.distributeCards();
+        // Distribution des cartes manuelle
+        game.getPlayers().get(0).setHand(List.of(
+                new Card("Clubs", "3"), new Card("Hearts", "4"),
+                new Card("Clubs", "6"), new Card("Hearts", "6"),
+                new Card("Diamonds", "8"), new Card("Diamonds", "9"),
+                new Card("Hearts", "9"), new Card("Spades", "9"),
+                new Card("Clubs", "J"), new Card("Spades", "J"),
+                new Card("Clubs", "Q"), new Card("Spades", "K"),
+                new Card("Spades", "2")
+        ));
+
+        game.getPlayers().get(1).setHand(List.of(
+                new Card("Diamonds", "3"), new Card("Hearts", "3"),
+                new Card("Clubs", "4"), new Card("Hearts", "5"),
+                new Card("Diamonds", "5"), new Card("Diamonds", "7"),
+                new Card("Hearts", "10"), new Card("Spades", "10"),
+                new Card("Diamonds", "J"), new Card("Hearts", "J"),
+                new Card("Hearts", "Q"), new Card("Diamonds", "K"),
+                new Card("Diamonds", "2")
+        ));
+
+        game.getPlayers().get(2).setHand(List.of(
+                new Card("Spades", "3"), new Card("Clubs", "5"),
+                new Card("Hearts", "6"), new Card("Diamonds", "6"),
+                new Card("Clubs", "7"), new Card("Spades", "7"),
+                new Card("Clubs", "9"), new Card("Diamonds", "10"),
+                new Card("Clubs", "K"), new Card("Spades", "Q"),
+                new Card("Hearts", "K"), new Card("Diamonds", "Q"),
+                new Card("Clubs", "2")
+        ));
+
+        game.getPlayers().get(3).setHand(List.of(
+                new Card("Spades", "4"), new Card("Diamonds", "4"),
+                new Card("Spades", "5"), new Card("Clubs", "8"),
+                new Card("Hearts", "8"), new Card("Spades", "8"),
+                new Card("Hearts", "7"), new Card("Clubs", "10"),
+                new Card("Hearts", "A"), new Card("Clubs", "A"),
+                new Card("Diamonds", "A"), new Card("Spades", "A"),
+                new Card("Hearts", "2")
+        ));
+        game.setState(GameState.IN_PROGRESS);
         gameRepository.save(game);  // Sauvegarder l'état après la distribution
 
         // S'assurer que chaque joueur a des cartes
@@ -51,45 +91,61 @@ class GameScenarioIntegrationTest {
 
         assertEquals(GameState.IN_PROGRESS, game.getState());
 
-        // Simuler le pli :
-        // Premier joueur joue une paire de 6
+        // Simuler le déroulement de plusieurs plis :
+
+        // Premier pli :
         simulateTurn(0, List.of(new Card("Clubs", "6"), new Card("Hearts", "6")));
+        simulateTurn(1, List.of(new Card("Hearts", "10"), new Card("Spades", "10")));
+        simulateTurn(2, List.of(new Card("Clubs", "K"), new Card("Hearts", "K")));
+        simulateTurn(3, null);  // Joueur 4 passe
+        simulateTurn(0, null);  // Joueur 1 passe
+        simulateTurn(1, null);  // Joueur 2 passe
 
-        // Deuxième joueur joue une paire de 8
-        simulateTurn(1, List.of(new Card("Diamonds", "8"), new Card("Spades", "8")));
+        // Vérification : Joueur 3 remporte le pli
+        assertTrue(game.getPlayedCards().isEmpty());
+        assertEquals(2, game.getCurrentPlayerIndex());
 
-        // Troisième joueur joue une paire de 10
-        simulateTurn(2, List.of(new Card("Clubs", "10"), new Card("Diamonds", "10")));
+        // Deuxième pli :
+        simulateTurn(2, List.of(new Card("Spades", "3")));
+        simulateTurn(3, List.of(new Card("Diamonds", "4")));
+        simulateTurn(0, List.of(new Card("Hearts", "4")));
+        simulateTurn(1, List.of(new Card("Clubs", "4")));
+        simulateTurn(2, null);
+        simulateTurn(3, List.of(new Card("Spades", "4")));
 
-        // Quatrième joueur passe
-        simulateTurn( 3, null);
+        assertTrue(game.getPlayedCards().isEmpty());
+        assertEquals(3, game.getCurrentPlayerIndex());
 
-        // Premier joueur passe
-        simulateTurn(0, null);
-
-        // Deuxième joueur passe
+        simulateTurn(3, List.of(new Card("Clubs", "8"), new Card("Hearts", "8"), new Card("Spades", "8")));
+        simulateTurn(0, List.of(new Card("Diamonds", "9"), new Card("Hearts", "9"), new Card("Spades", "9")), true);
         simulateTurn(1, null);
-
-        // Vérification : Troisième joueur a remporté le pli
-        assertTrue(game.getPlayedCards().isEmpty());
-        assertEquals(3L, game.getPlayers().get(game.getCurrentPlayerIndex()).getId());
-
-        simulateTurn(2, List.of(new Card("Clubs", "3")));
-        simulateTurn( 3, List.of(new Card("Diamonds", "3")));
-        simulateTurn( 0, List.of(new Card("Spades", "3")));
-        simulateTurn( 1, List.of(new Card("Hearts", "3")));
+        simulateTurn(2, null);
+        simulateTurn(3, null);
 
         assertTrue(game.getPlayedCards().isEmpty());
-        assertEquals(2L, game.getPlayers().get(game.getCurrentPlayerIndex()).getId());
+        assertEquals(0, game.getCurrentPlayerIndex());
+
+        // Ajouter plus de tours et de vérifications pour les autres joueurs
+
+        // À la fin, tous les joueurs doivent avoir un rang :
+//        assertEquals(4, game.getRanks().size());  // Tous les joueurs ont un rang
+//        assertEquals(1, game.getRanks().get(game.getPlayers().get(0)));  // Premier joueur est Président
+//        assertEquals(2, game.getRanks().get(game.getPlayers().get(1)));  // Deuxième joueur est Vice-Président
+//        assertEquals(4, game.getRanks().get(game.getPlayers().get(3)));  // Dernier joueur est Trouduc
     }
 
-    private void simulateTurn(int playerIndex, List<Card> cards) {
+
+    private void simulateTurn(int playerIndex, List<Card> cards, boolean suite) {
         Player player = game.getPlayers().get(playerIndex);
         if (cards == null) {
             game.passTurn(player.getId());
         } else {
-            game.playCards(player.getId(), cards);
+            game.playCards(player.getId(), cards, suite);
         }
         gameRepository.save(game);  // Sauvegarder après chaque tour pour maintenir l'état
+    }
+
+    private void simulateTurn(int playerIndex, List<Card> cards) {
+        simulateTurn(playerIndex, cards, false);
     }
 }
