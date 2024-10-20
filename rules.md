@@ -30,6 +30,10 @@ Le **Super Président** est un jeu de cartes stratégique où le but est de deve
 #### 4.4 Passer son tour
 - Un joueur ne peut passer que **s'il ne peut pas jouer** une carte valide selon les règles en cours (suite, reverse, etc.).
 
+#### 4?5 La carte de rang 2
+  - Le **2** est une carte spéciale. Elle termine automatiquement un pli, quelle que soit la combinaison de cartes jouée avant elle.
+  - Cependant, le joueur qui joue un **2** en dernière carte devient automatiquement le **Trouduc**, même s'il termine son jeu en premier.
+
 ### 5. Fin de partie
 - La partie se termine lorsque tous les joueurs ont posé toutes leurs cartes. Le joueur qui termine en premier devient **Président**, et celui qui termine en dernier est **Trouduc**.
 

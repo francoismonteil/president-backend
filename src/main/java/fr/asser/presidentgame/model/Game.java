@@ -90,13 +90,20 @@ public class Game {
         processPlayerMove(currentPlayer, cards);
 
         if (currentPlayer.getHand().isEmpty()) {
-            ranks.put(currentPlayer, ranks.size() + 1);
+            // Si la dernière carte est un 2, ce joueur devient automatiquement Trouduc
+            if (cards.size() == 1 && "2".equals(cards.getFirst().getRank())) {
+                ranks.put(currentPlayer, players.size());  // Assigner le rang de Trouduc
+            } else {
+                ranks.put(currentPlayer, ranks.size() + 1);  // Sinon, assigner un rang classique
+            }
 
+            // Vérifier si un seul joueur reste avec des cartes
             var remainingPlayers = players.stream().filter(player -> !player.getHand().isEmpty()).toList();
             if (remainingPlayers.size() == 1) {
                 ranks.put(remainingPlayers.getFirst(), ranks.size() + 1);
             }
         }
+
 
         handlePostPlayLogic(cards);
     }
