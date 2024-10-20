@@ -97,9 +97,9 @@ class GameScenarioIntegrationTest {
         simulateTurn(0, List.of(new Card("Clubs", "6"), new Card("Hearts", "6")));
         simulateTurn(1, List.of(new Card("Hearts", "10"), new Card("Spades", "10")));
         simulateTurn(2, List.of(new Card("Clubs", "K"), new Card("Hearts", "K")));
-        simulateTurn(3, null);  // Joueur 4 passe
-        simulateTurn(0, null);  // Joueur 1 passe
-        simulateTurn(1, null);  // Joueur 2 passe
+        simulateTurn(3, null);
+        simulateTurn(0, null);
+        simulateTurn(1, null);
 
         assertTrue(game.getPlayedCards().isEmpty());
         assertEquals(2, game.getCurrentPlayerIndex());

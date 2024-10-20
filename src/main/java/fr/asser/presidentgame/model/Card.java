@@ -44,7 +44,7 @@ public class Card {
 
     public static int compareRank(Card card1, Card card2) {
         List<String> ranks = Arrays.asList("3", "4", "5", "6", "7", "8", "9", "10", "J", "Q", "K", "A", "2");
-        return Integer.compare(ranks.indexOf(card1.getRank()), ranks.indexOf(card2.getRank()));
+        return ranks.indexOf(card1.getRank()) - ranks.indexOf(card2.getRank());
     }
 
     public static boolean areSameRank(List<Card> cards) {

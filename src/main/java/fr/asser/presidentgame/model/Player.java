@@ -20,21 +20,25 @@ public class Player {
     @JoinColumn(name = "player_id")
     private List<Card> hand = new ArrayList<>();
 
-    // Liste des cartes jouées par le joueur dans le pli en cours
-    @Transient // Pas besoin de stocker cette information en base de données
+    @Transient
     private List<Card> playedCards = new ArrayList<>();
 
     @ManyToOne
     @JoinColumn(name = "game_id")
     private Game game;
 
-    private boolean hasPassed;  // Indicateur pour savoir si le joueur a passé son tour
+    private boolean hasPassed;
+    private boolean canPlayInCurrentPli;
 
-    public Player() {}
+    public Player() {
+        this.hasPassed = false;
+        this.canPlayInCurrentPli = true;
+    }
 
     public Player(String name) {
         this.name = name;
-        this.hasPassed = false;  // Initialiser à false au début
+        this.hasPassed = false;
+        this.canPlayInCurrentPli = true;
     }
 
     public Long getId() {
@@ -70,17 +74,16 @@ public class Player {
 
     public void playCard(Card card) {
         removeCardFromHand(card);
-        playedCards.add(card);  // Enregistrer la carte jouée
+        playedCards.add(card);
         this.hasPassed = false;  // Le joueur ne passe pas s'il joue une carte
     }
 
     public boolean hasPlayedCard(Card card) {
-        // Vérifier si la carte a été jouée par ce joueur
         return playedCards.contains(card);
     }
 
     public void passTurn() {
-        this.hasPassed = true;  // Le joueur passe son tour
+        this.hasPassed = true;
     }
 
     public boolean hasPassed() {
@@ -88,11 +91,11 @@ public class Player {
     }
 
     public void resetPassed() {
-        this.hasPassed = false;  // Réinitialiser à chaque début de nouveau pli
+        this.hasPassed = false;
     }
 
     public void resetPlayedCards() {
-        playedCards.clear();  // Réinitialiser la liste des cartes jouées à la fin du pli
+        playedCards.clear();
     }
 
     public List<Card> getSortedCards(int count, Comparator<Card> comparator, boolean ascending) {
@@ -108,5 +111,18 @@ public class Player {
 
     public Game getGame() {
         return game;
+    }
+
+    public boolean canPlayInCurrentPli() {
+        return canPlayInCurrentPli;
+    }
+
+    public void setCanPlayInCurrentPli(boolean canPlayInCurrentPli) {
+        this.canPlayInCurrentPli = canPlayInCurrentPli;
+    }
+
+    public void resetForNewPli() {
+        this.hasPassed = false;
+        this.canPlayInCurrentPli = true;
     }
 }

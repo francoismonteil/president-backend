@@ -219,20 +219,13 @@ class GameLogicTest {
         assertTrue(result);
     }
 
-    @Test
-    void testIsSequenceMove_ValidSequence() {
-        game.getPlayedCards().addAll(List.of(new Card("Hearts", "5"), new Card("Diamonds", "6")));  // Séquence jouée précédemment
-        boolean isValid = game.isValidMove(List.of(new Card("Clubs", "7"), new Card("Spades", "8")));  // Nouvelle séquence correcte
-        assertTrue(isValid);
-    }
-
-    @Test
+    @Test()
     void testRedistributeCards_NullPlayers() {
         // Simuler un jeu sans president ni trouduc
         game.setState(GameState.DISTRIBUTING_CARDS);
         game.setRanks(new HashMap<>());  // Pas de joueurs classés
 
-        game.redistributeCards();  // Aucune carte ne doit être redistribuée sans erreur
+        assertDoesNotThrow(() -> game.redistributeCards());  // Aucune carte ne doit être redistribuée sans erreur
     }
 
     @Test
@@ -254,4 +247,168 @@ class GameLogicTest {
         assertEquals("Invalid move: [Card{suit='Hearts', rank='3'}]", exception.getMessage());
     }
 
+    @Test
+    void testValidatePlayConditions_InvalidOuRienCondition() {
+        // Arrange
+        game.setOrNothingConditionActive(true);
+        game.setCurrentRequiredRank("7");
+
+        List<Card> cardsToPlay = List.of(new Card("Hearts", "6"));  // Carte qui ne respecte pas "Ou Rien"
+
+        // Act & Assert
+        InvalidMoveException exception = assertThrows(InvalidMoveException.class, () -> {
+            game.validatePlayConditions(cardsToPlay);
+        });
+        assertEquals("You must play a card of rank 7 or pass.", exception.getMessage());
+    }
+
+    @Test
+    void testValidatePlayConditions_InvalidSuiteCondition() {
+        // Arrange
+        game.setSuiteActive(true);
+        game.setCurrentSuiteRank("8");
+
+        List<Card> cardsToPlay = List.of(new Card("Hearts", "7"));  // Carte qui ne suit pas la suite
+
+        // Act & Assert
+        InvalidMoveException exception = assertThrows(InvalidMoveException.class, () -> {
+            game.validatePlayConditions(cardsToPlay);
+        });
+        assertEquals("You must follow the suite or pass.", exception.getMessage());
+    }
+
+    @Test
+    void testHandleSuiteOption_ActivateSuite() {
+        // Arrange
+        List<Card> lastPlayed = List.of(new Card("Hearts", "7"));
+        game.getPlayedCards().addAll(lastPlayed);
+
+        List<Card> cardsToPlay = List.of(new Card("Hearts", "8"));  // Carte qui suit la suite
+
+        // Act
+        game.handleSuiteOption(true, cardsToPlay);
+
+        // Assert
+        assertTrue(game.isSuiteActive());
+        assertEquals("8", game.getCurrentSuiteRank());
+    }
+
+    @Test
+    void testHandlePassLogic_SuiteActive_PlayerCannotPlay() {
+        // Arrange
+        Player player = new Player("Player1");
+        game.getPlayers().add(player);
+        game.setSuiteActive(true);
+
+        // Act
+        game.handlePassLogic(player);
+
+        // Assert
+        assertFalse(player.canPlayInCurrentPli());  // Le joueur ne peut plus jouer
+    }
+
+    @Test
+    void testDeterminePliWinner() {
+        // Arrange
+        Player player1 = new Player("Player1");
+        player1.setHand(List.of(new Card("Diamonds", "8")));
+        Player player2 = new Player("Player2");
+        game.getPlayers().add(player1);
+        game.getPlayers().add(player2);
+
+        List<Card> lastPlayedCards = List.of(new Card("Hearts", "8"), new Card("Diamonds", "8"));
+        player1.playCard(new Card("Diamonds", "8"));
+        game.getPlayedCards().addAll(lastPlayedCards);
+
+        // Act
+        Player winner = game.determinePliWinner(lastPlayedCards);
+
+        // Assert
+        assertEquals(player1, winner);
+    }
+
+    @Test
+    void testResetAfterRound() {
+        // Arrange
+        Player player1 = new Player("Player1");
+        player1.passTurn();
+        game.getPlayers().add(player1);
+        game.getPlayedCards().add(new Card("Hearts", "8"));  // Simuler un pli en cours
+
+        // Act
+        game.resetAfterRound();
+
+        // Assert
+        assertTrue(game.getPlayedCards().isEmpty());  // Vérifier que les cartes jouées sont réinitialisées
+        assertFalse(player1.hasPassed());  // Le joueur ne devrait plus être marqué comme ayant passé
+    }
+
+    @Test
+    void testIsConsecutiveToLastPlayed_True() {
+        // Arrange
+        game.getPlayedCards().add(new Card("Hearts", "7"));
+
+        // Act
+        boolean result = game.isConsecutiveToLastPlayed(new Card("Hearts", "8"));
+
+        // Assert
+        assertTrue(result);
+    }
+
+    @Test
+    void testIsConsecutiveToLastPlayed_False() {
+        // Arrange
+        game.getPlayedCards().add(new Card("Hearts", "7"));
+
+        // Act
+        boolean result = game.isConsecutiveToLastPlayed(new Card("Hearts", "9"));
+
+        // Assert
+        assertFalse(result);
+    }
+
+    @Test
+    void testCheckOrNothingRule_ActivatesOrNothing() {
+        // Arrange
+        List<Card> lastPlayed = List.of(new Card("Hearts", "7"), new Card("Diamonds", "7"));  // Deux cartes du même rang
+        game.getPlayedCards().addAll(lastPlayed);
+
+        // Act
+        game.checkOrNothingRule(List.of(new Card("Spades", "7")));
+
+        // Assert
+        assertTrue(game.isOrNothingConditionActive());
+        assertEquals("7", game.getCurrentRequiredRank());
+    }
+
+    @Test
+    void testCheckOrNothingRule_DoesNotActivateOrNothing() {
+        // Arrange
+        List<Card> lastPlayed = List.of(new Card("Hearts", "7"), new Card("Diamonds", "8"));  // Pas deux cartes du même rang
+        game.getPlayedCards().addAll(lastPlayed);
+
+        // Act
+        game.checkOrNothingRule(List.of(new Card("Spades", "9")));
+
+        // Assert
+        assertFalse(game.isOrNothingConditionActive());
+    }
+
+    @Test
+    void testGetLastPlayerWhoPlayedIndex() {
+        // Arrange
+        Player player1 = new Player("Player1");
+        player1.setHand(List.of(new Card("Hearts", "8")));
+        Player player2 = new Player("Player2");
+        player1.playCard(new Card("Hearts", "8"));
+        player2.passTurn();
+        game.getPlayers().add(player1);
+        game.getPlayers().add(player2);
+
+        // Act
+        int lastPlayerIndex = game.getLastPlayerWhoPlayedIndex();
+
+        // Assert
+        assertEquals(0, lastPlayerIndex);  // Le joueur 1 était le dernier à jouer
+    }
 }

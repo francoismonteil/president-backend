@@ -127,7 +127,7 @@ public class Game {
         return currentPlayer;
     }
 
-    private void validatePlayConditions(List<Card> cards) {
+    void validatePlayConditions(List<Card> cards) {
         // Validation des règles du jeu
         if (orNothingConditionActive && !cards.isEmpty() && !cards.get(0).getRank().equals(currentRequiredRank)) {
             throw new InvalidMoveException("You must play a card of rank " + currentRequiredRank + " or pass.");
@@ -147,14 +147,19 @@ public class Game {
         playedCards.addAll(cards);
     }
 
-    private void handleSuiteOption(boolean suiteOption, List<Card> cards) {
+    void handleSuiteOption(boolean suiteOption, List<Card> cards) {
         if (suiteOption && canTriggerSuite() && isConsecutiveToLastPlayed(cards.get(0))) {
             activateSuite(cards.get(0));
         }
     }
 
-    private void handlePassLogic(Player currentPlayer) {
+    void handlePassLogic(Player currentPlayer) {
         boolean alreadyPassed = currentPlayer.hasPassed();
+
+        if (suiteActive) {
+            currentPlayer.setCanPlayInCurrentPli(false);
+        }
+
         if (orNothingConditionActive && !alreadyPassed) {
             orNothingConditionActive = false;
             currentRequiredRank = null;
@@ -168,7 +173,7 @@ public class Game {
         }
     }
 
-    private void initializeDeck() {
+    void initializeDeck() {
         String[] suits = {"Hearts", "Diamonds", "Clubs", "Spades"};
         String[] ranks = {"3", "4", "5", "6", "7", "8", "9", "10", "J", "Q", "K", "A", "2"};
         deck.clear();
@@ -210,7 +215,7 @@ public class Game {
         currentPlayerIndex = (currentPlayerIndex + 1) % players.size();
     }
 
-    private Player determinePliWinner(List<Card> lastPlayedCards) {
+    Player determinePliWinner(List<Card> lastPlayedCards) {
         Card highestCard = lastPlayedCards.getLast();
         Player winner = null;
 
@@ -224,7 +229,7 @@ public class Game {
         return winner;
     }
 
-    private void resetAfterRound() {
+    void resetAfterRound() {
         clearPlayedCards();
         orNothingConditionActive = false;
         suiteActive = false;
@@ -232,7 +237,7 @@ public class Game {
         resetPlayers();  // Réinitialiser l'état de passage des joueurs
     }
 
-    private void checkOrNothingRule(List<Card> cards) {
+    void checkOrNothingRule(List<Card> cards) {
         if (cards.size() == 1) {
             if (playedCards.size() >= 2 && Card.areSameRank(getLastPlayedCards(2))) {
                 orNothingConditionActive = true;
@@ -247,7 +252,7 @@ public class Game {
         }
     }
 
-    private boolean allPlayersHavePassed() {
+    boolean allPlayersHavePassed() {
         return getActivePlayersCount() == 1;
     }
 
@@ -296,7 +301,7 @@ public class Game {
         return Card.compareRank(card, new Card(card.getSuit(), currentSuiteRank)) == 1;
     }
 
-    private boolean isConsecutiveToLastPlayed(Card card) {
+    boolean isConsecutiveToLastPlayed(Card card) {
         return Card.compareRank(card, getLastPlayedCard()) == 1;
     }
 
@@ -316,13 +321,14 @@ public class Game {
     private void resetPlayers() {
         players.forEach(Player::resetPlayedCards);
         players.forEach(Player::resetPassed);
+        players.forEach(Player::resetForNewPli);
     }
 
-    private int getLastPlayerWhoPlayedIndex() {
+    int getLastPlayerWhoPlayedIndex() {
         return currentPlayerIndex;
     }
 
-    private void performCardRedistribution() {
+    void performCardRedistribution() {
         Player president = getPlayerByRank(1);
         Player vicePresident = getPlayerByRank(2);
         Player trouduc = getPlayerByRank(players.size());
@@ -432,5 +438,45 @@ public class Game {
 
     public void setIsSaved(Boolean saved) {
         isSaved = saved;
+    }
+
+    public boolean isOrNothingConditionActive() {
+        return orNothingConditionActive;
+    }
+
+    public void setOrNothingConditionActive(boolean orNothingConditionActive) {
+        this.orNothingConditionActive = orNothingConditionActive;
+    }
+
+    public String getCurrentRequiredRank() {
+        return currentRequiredRank;
+    }
+
+    public void setCurrentRequiredRank(String currentRequiredRank) {
+        this.currentRequiredRank = currentRequiredRank;
+    }
+
+    public Boolean getSaved() {
+        return isSaved;
+    }
+
+    public void setSaved(Boolean saved) {
+        isSaved = saved;
+    }
+
+    public boolean isSuiteActive() {
+        return suiteActive;
+    }
+
+    public void setSuiteActive(boolean suiteActive) {
+        this.suiteActive = suiteActive;
+    }
+
+    public String getCurrentSuiteRank() {
+        return currentSuiteRank;
+    }
+
+    public void setCurrentSuiteRank(String currentSuiteRank) {
+        this.currentSuiteRank = currentSuiteRank;
     }
 }
