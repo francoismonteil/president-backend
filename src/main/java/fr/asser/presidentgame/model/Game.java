@@ -93,6 +93,10 @@ public class Game {
         ensureState(GameState.IN_PROGRESS, "Cannot pass turn in the current game state.");
         Player currentPlayer = getCurrentPlayer(playerId);
 
+        if (canPlayerPlay(currentPlayer)) {
+            throw new InvalidMoveException("You cannot pass if you can play.");
+        }
+
         handlePassLogic(currentPlayer);
     }
 
@@ -370,6 +374,26 @@ public class Game {
 
         highRank.getHand().addAll(lowRankCards);
         lowRank.getHand().addAll(highRankCards);
+    }
+
+    public boolean canPlayerPlay(Player player) {
+        // Si le joueur a déjà passé dans ce pli, il ne peut plus jouer
+        if (player.hasPassed()) {
+            return false;
+        }
+
+        // Si la condition "Ou rien" est active, le joueur doit jouer une carte du rang requis
+        if (orNothingConditionActive && !player.getHand().isEmpty()) {
+            return player.getHand().stream().anyMatch(card -> card.getRank().equals(currentRequiredRank));
+        }
+
+        // Si la suite est active, le joueur doit suivre la suite
+        if (suiteActive && !player.getHand().isEmpty()) {
+            return player.getHand().stream().anyMatch(this::isFollowingSuite);
+        }
+
+        // Si aucune condition spéciale n'est active, le joueur peut jouer
+        return true;
     }
 
     // Getters et setters
