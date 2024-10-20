@@ -1,50 +1,65 @@
-# Super Président 🎩
+# Super Président
 
-Bienvenue dans **Super Président** – un jeu de cartes palpitant où chaque joueur se bat pour atteindre le sommet du pouvoir ou tomber en disgrâce. Inspiré du jeu classique "Président", **Super Président** ajoute des règles spéciales qui intensifient le jeu à chaque tour.
+Bienvenue dans **Super Président**, un jeu de cartes inspiré du célèbre jeu francophone "Président", mais avec une série de règles supplémentaires pour le rendre encore plus stratégique et captivant !
 
-## But du jeu
+## Objectif du Jeu
+L'objectif du jeu est de se débarrasser de toutes ses cartes avant les autres joueurs. Le premier joueur à y parvenir devient le **Président**, tandis que le dernier est désigné comme le **Trouduc**. Entre ces deux extrêmes, les autres joueurs prennent des rôles hiérarchiques. Les joueurs de haut rang ont un avantage dans les manches suivantes, tandis que les joueurs de bas rang se retrouvent désavantagés.
 
-Le but de **Super Président** est de devenir le **Président** en se débarrassant de toutes ses cartes avant les autres joueurs. Mais attention, si vous terminez dernier, vous deviendrez le **Trouduc**. Au fil des manches, tentez de monter les échelons et de dominer la partie.
+## Mise en Place
+- Le jeu se joue idéalement avec 4 joueurs.
+- Chaque joueur reçoit un certain nombre de cartes distribuées de manière égale à partir d'un jeu standard de 52 cartes (ou 54 avec jokers, selon la variante).
+- Les cartes sont classées du **3** (plus faible) au **2** (plus fort).
 
-## Mise en place
+## Hiérarchie des Cartes
+- **3** est la carte la plus faible, et **2** la plus forte.
+- Les suites et combinaisons de cartes sont autorisées.
+- Jouer un **2** termine instantanément le pli.
 
-Super Président se joue à 4 joueurs (ou plus, mais ce guide est conçu pour 4). Chaque joueur commence avec un paquet de cartes bien mélangées. Le jeu utilise un paquet de 52 cartes classiques, réparti également entre les joueurs.
+## Rôles
+- **Président** : Le premier joueur à se débarrasser de toutes ses cartes.
+- **Vice-président** : Le deuxième joueur à se débarrasser de ses cartes.
+- **Vice-trouduc** : L’avant-dernier joueur à finir ses cartes.
+- **Trouduc** : Le dernier joueur à garder des cartes.
 
-### Les titres
-- **Président** : Le joueur qui gagne la manche précédente.
-- **Vice-Président** : Le deuxième joueur à se débarrasser de ses cartes.
-- **Vice-Trouduc** : Celui qui termine avant-dernier.
-- **Trouduc** : Le dernier joueur à finir, avec un désavantage au tour suivant.
+## Règles du Jeu
 
-## Règles de base
+### 1. **Déroulement des Tours**
+- À chaque tour, le joueur doit jouer une carte ou une combinaison de cartes d’un rang supérieur ou égal à la dernière carte jouée.
+- Les cartes jouées doivent correspondre en quantité à celles jouées lors du dernier coup (par exemple, un joueur ne peut pas répondre à une paire par une seule carte).
+- Si un joueur ne peut ou ne souhaite pas jouer, il doit **passer son tour**.
 
-- Les cartes sont classées par ordre croissant de puissance : **3 < 4 < 5 < 6 < 7 < 8 < 9 < 10 < J < Q < K < A < 2**. La carte **2** est la plus forte et met automatiquement fin au pli.
-- Chaque joueur doit jouer des cartes de valeur égale ou supérieure à la dernière carte jouée. S'il ne peut pas, il doit passer son tour.
+### 2. **Passage de Tour**
+- Lorsqu'un joueur passe, il ne peut plus jouer de cartes pour le reste du pli, sauf dans des cas spécifiques comme le "Ou rien".
+- Si un joueur passe lors d'une **suite**, il ne pourra plus jouer durant le pli.
+- Si un joueur passe lors d'un **Ou rien**, il pourra toujours jouer lors des prochains tours du même pli.
 
-## Règles spéciales
+### 3. **Ou Rien**
+- Si deux cartes identiques sont jouées consécutivement, cela active la règle "Ou rien". Tous les joueurs suivants doivent alors jouer des cartes du même rang, ou **passer**.
+- Lorsqu'un joueur **passe** dans une situation "Ou rien", cette condition est réinitialisée, à moins que le joueur ait déjà passé au préalable dans ce pli.
 
-### Règle du "Ou rien"
-Si deux cartes consécutives du même rang sont jouées par des joueurs différents (exemple : deux **7**), la règle du **"Ou rien"** s'active. Le joueur suivant doit jouer une carte du même rang ou passer son tour.
+### 4. **Fin d’un Pli**
+- Un pli se termine si :
+  - Tous les joueurs sauf un ont passé leur tour.
+  - Un **2** est joué (ce qui termine instantanément le pli).
+  - Quatre cartes du même rang sont jouées consécutivement.
 
-### Les paires, triples et quadruples
-- Les joueurs peuvent poser des paires, des triples ou des quadruples de cartes.
-- Si quatre cartes identiques sont jouées dans un pli, le pli se termine immédiatement, et le dernier joueur à avoir joué remporte le pli.
+### 5. **La Suite**
+- Si un joueur joue une carte directement supérieure à celle précédemment jouée (par exemple un **8** après un **7**), il peut déclencher la **suite**.
+- Une fois la suite activée, tous les joueurs suivants doivent continuer à jouer des cartes en suivant la séquence numérique.
+- La suite est désactivée à la fin du pli ou si un joueur joue un **2**.
+- Lorsqu’un joueur passe durant une suite, il ne peut plus rejouer pendant ce pli.
 
-### La règle de la "Suite"
-Si un joueur joue une carte ou une combinaison qui suit directement la valeur précédente (par exemple, un **8** après un **7**), il peut déclarer une **"Suite"**. Les joueurs suivants doivent continuer la suite en jouant la carte suivante dans l'ordre ou une combinaison de même valeur.
+### 6. **Redistribution des Cartes**
+- À la fin de chaque manche, les cartes sont redistribuées entre les joueurs selon leur rang :
+  - Le **Président** donne ses deux plus mauvaises cartes au **Trouduc**, qui doit lui rendre ses deux meilleures cartes.
+  - Le **Vice-président** donne sa pire carte au **Vice-trouduc**, qui doit lui rendre sa meilleure carte.
 
-### Fin du pli
-Un pli se termine lorsque tous les joueurs sauf un ont passé ou lorsqu'un **2** est joué. Le dernier joueur à avoir posé une carte remporte le pli, et les cartes sont défaussées. Ce joueur commence alors le nouveau pli.
-
-## Redistribution des cartes
-Avant chaque nouvelle manche :
-- Le **Président** et le **Trouduc** échangent deux cartes.
-- Le **Vice-Président** et le **Vice-Trouduc** échangent une carte.
-  Cela donne un avantage au Président et un handicap au Trouduc pour le prochain tour.
-
-## Déroulement de la partie
-Le jeu se poursuit jusqu'à ce qu'un joueur conserve son statut de **Président** sur plusieurs manches, ou qu'un joueur parvienne à se libérer du rôle de **Trouduc**. Chaque manche est un test de stratégie, de timing et d'anticipation pour prendre le pouvoir.
+### 7. **Dernier Joueur en Jeu**
+- Si tous les joueurs sauf un ont passé, le dernier joueur encore en jeu peut continuer à jouer des cartes par-dessus celles qu’il a déjà jouées jusqu’à ce qu’il décide de passer ou qu'il termine le pli.
 
 ---
 
-## Amusez-vous bien et que le meilleur stratège devienne **Super Président** ! 🎉
+## Fin de la Partie
+La partie se termine lorsqu'un joueur est le premier à se débarrasser de toutes ses cartes, devenant le **Président**, tandis que le dernier joueur devient le **Trouduc**. Le classement final détermine l’ordre des joueurs pour la prochaine manche.
+
+Amusez-vous bien dans cette version améliorée et pleine de rebondissements de **Super Président** !
