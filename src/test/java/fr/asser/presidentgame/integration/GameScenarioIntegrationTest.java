@@ -4,13 +4,17 @@ import fr.asser.presidentgame.model.Card;
 import fr.asser.presidentgame.model.Game;
 import fr.asser.presidentgame.model.GameState;
 import fr.asser.presidentgame.model.Player;
-import fr.asser.presidentgame.repository.GameRepository;
 import fr.asser.presidentgame.service.GameService;
 import static org.junit.jupiter.api.Assertions.*;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.userdetails.User;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.test.context.ActiveProfiles;
 
 import java.util.List;
@@ -22,16 +26,22 @@ class GameScenarioIntegrationTest {
     @Autowired
     private GameService gameService;
 
-    @Autowired
-    private GameRepository gameRepository;
-
     private Game game;
 
     @BeforeEach
     void setUp() {
+        UserDetails userDetails = User.withUsername("admin")
+                .password("admin")
+                .roles("ADMIN", "USER")
+                .build();
+
+        Authentication authentication = new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities());
+
+        SecurityContextHolder.getContext().setAuthentication(authentication);
+
         List<String> playerNames = List.of("Player1", "Player2", "Player3", "Player4");
         game = gameService.createGame(playerNames);
-        gameRepository.save(game);  // Sauvegarde du jeu dans la base de données
+        gameService.saveGame(game.getId());
     }
 
     @Test
@@ -81,7 +91,7 @@ class GameScenarioIntegrationTest {
                 new Card("Hearts", "2")
         ));
         game.setState(GameState.IN_PROGRESS);
-        gameRepository.save(game);  // Sauvegarder l'état après la distribution
+        gameService.saveGame(game.getId());
 
         // S'assurer que chaque joueur a des cartes
         for (Player player : game.getPlayers()) {
@@ -219,7 +229,7 @@ class GameScenarioIntegrationTest {
         } else {
             game.playCards(player.getId(), cards, suite);
         }
-        gameRepository.save(game);  // Sauvegarder après chaque tour pour maintenir l'état
+        gameService.saveGame(game.getId());
     }
 
     private void simulateTurn(int playerIndex, List<Card> cards) {

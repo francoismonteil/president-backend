@@ -6,7 +6,6 @@ import fr.asser.presidentgame.model.*;
 import fr.asser.presidentgame.repository.AppUserRepository;
 import fr.asser.presidentgame.repository.GameLogRepository;
 import fr.asser.presidentgame.repository.GameRepository;
-import org.springframework.cache.annotation.Cacheable;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -38,9 +37,15 @@ public class GameService {
         return gameRepository.save(game);
     }
 
-    @Cacheable("games")
-    public Game getGame(Long id) {
-        return gameRepository.findByIdWithAssociations(id).orElseThrow(() -> new GameNotFoundException(id));
+    public Game getGame(Long gameId) {
+        Game game = gameRepository.findById(gameId)
+                .orElseThrow(() -> new GameNotFoundException(gameId));
+
+        // Chargement des collections dans des requêtes séparées
+        game.getPlayedCards().size(); // Cela déclenche le chargement des cartes jouées
+        game.getPlayers().size();     // Cela déclenche le chargement des joueurs
+
+        return game;
     }
 
     public Game startGame(Long id) {
