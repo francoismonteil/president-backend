@@ -37,8 +37,11 @@ class GameServiceTest {
         gameService = new GameService(gameRepository, gameLogRepository, appUserRepository, messagingTemplate);  // Injecter le mock
 
         // Simuler un utilisateur authentifié
-        User principal = new User("Player1", "password", List.of());
-        UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(principal, null, principal.getAuthorities());
+        var userDetails = User.withUsername("admin")
+                .password("admin")
+                .roles("ADMIN", "USER")
+                .build();
+        var authentication = new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities());
         SecurityContextHolder.getContext().setAuthentication(authentication);
 
         // Simuler la récupération d'un utilisateur
@@ -73,7 +76,7 @@ class GameServiceTest {
         player.setId(1L);
         game.getPlayers().add(player);
         game.setState(GameState.IN_PROGRESS);
-        when(gameRepository.findByIdWithAssociations(anyLong())).thenReturn(java.util.Optional.of(game));
+        when(gameRepository.findById(anyLong())).thenReturn(java.util.Optional.of(game));
         when(gameRepository.save(any(Game.class))).thenReturn(game);
 
         // Act
@@ -94,7 +97,7 @@ class GameServiceTest {
         // Arrange
         Game game = new Game();
         game.setState(GameState.INITIALIZED);
-        when(gameRepository.findByIdWithAssociations(anyLong())).thenReturn(Optional.of(game));
+        when(gameRepository.findById(anyLong())).thenReturn(Optional.of(game));
         when(gameRepository.save(any(Game.class))).thenReturn(game);
 
         // Act
@@ -117,7 +120,7 @@ class GameServiceTest {
         player.setHand(List.of(new Card("Hearts", "3")));
         game.getPlayers().add(player);
         game.setState(GameState.IN_PROGRESS);
-        when(gameRepository.findByIdWithAssociations(anyLong())).thenReturn(Optional.of(game));
+        when(gameRepository.findById(anyLong())).thenReturn(Optional.of(game));
         when(gameRepository.save(any(Game.class))).thenReturn(game);
 
         // Act
@@ -137,7 +140,7 @@ class GameServiceTest {
         player.setId(1L);
         game.getPlayers().add(player);
         game.setState(GameState.IN_PROGRESS);
-        when(gameRepository.findByIdWithAssociations(anyLong())).thenReturn(Optional.of(game));
+        when(gameRepository.findById(anyLong())).thenReturn(Optional.of(game));
         when(gameRepository.save(any(Game.class))).thenReturn(game);
 
 
@@ -153,7 +156,7 @@ class GameServiceTest {
     void testSaveGame_Success() {
         // Arrange
         Game game = new Game();
-        when(gameRepository.findByIdWithAssociations(anyLong())).thenReturn(Optional.of(game));
+        when(gameRepository.findById(anyLong())).thenReturn(Optional.of(game));
         when(gameRepository.save(any(Game.class))).thenReturn(game);
 
         // Act
@@ -189,7 +192,7 @@ class GameServiceTest {
         game.getPlayers().add(player2);
         game.setState(GameState.IN_PROGRESS);
         game.setCurrentPlayerIndex(0);  // C'est au tour de player1
-        when(gameRepository.findByIdWithAssociations(anyLong())).thenReturn(Optional.of(game));
+        when(gameRepository.findById(anyLong())).thenReturn(Optional.of(game));
 
         // Act & Assert
         NotPlayersTurnException exception = assertThrows(NotPlayersTurnException.class, () -> {
@@ -213,7 +216,7 @@ class GameServiceTest {
         player.setId(1L);
         game.getPlayers().add(player);
         game.setState(GameState.IN_PROGRESS);
-        when(gameRepository.findByIdWithAssociations(anyLong())).thenReturn(Optional.of(game));
+        when(gameRepository.findById(anyLong())).thenReturn(Optional.of(game));
 
         // Act & Assert
         IllegalStateException exception = assertThrows(IllegalStateException.class, () -> {
