@@ -6,6 +6,7 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.persistence.*;
 
 import java.util.*;
+import java.util.stream.Collectors;
 
 @Entity
 public class Game {
@@ -45,6 +46,7 @@ public class Game {
     private String currentRequiredRank = null;
     private boolean suiteActive = false;
     private String currentSuiteRank = null;
+    private int currentMoveSize = 0; // 0 indique qu'aucun mouvement n'a encore été fait
 
     public Game() {
         initializeDeck();
@@ -93,7 +95,7 @@ public class Game {
         ensureState(GameState.IN_PROGRESS, "Cannot pass turn in the current game state.");
         Player currentPlayer = getCurrentPlayer(playerId);
 
-        if (canPlayerPlay(currentPlayer)) {
+        if (getActivePlayersCount() > 1 && canPlayerPlay(currentPlayer)) {
             throw new InvalidMoveException("You cannot pass if you can play.");
         }
 
@@ -209,6 +211,14 @@ public class Game {
     }
 
     private void handlePostPlayLogic(List<Card> cards) {
+        if (currentMoveSize == 0) {
+            currentMoveSize = cards.size();
+        } else {
+            if (cards.size() != currentMoveSize) {
+                throw new InvalidMoveException("All players must play the same number of cards.");
+            }
+        }
+
         if(cards.stream().anyMatch(card -> Objects.equals(card.getRank(), "2"))) {
             resetAfterRound();
             return;
@@ -248,6 +258,7 @@ public class Game {
         orNothingConditionActive = false;
         suiteActive = false;
         currentRequiredRank = null;
+        currentMoveSize = 0;
         resetPlayers();  // Réinitialiser l'état de passage des joueurs
     }
 
@@ -315,6 +326,24 @@ public class Game {
         return Card.compareRank(card, new Card(card.getSuit(), currentSuiteRank)) == 1;
     }
 
+    private boolean isFollowingSuite(List<Card> cards) {
+        if (cards.isEmpty()) {
+            return false;
+        }
+
+        // Vérifier que toutes les cartes ont le même rang (si une paire ou triple est en jeu)
+        String firstCardRank = cards.get(0).getRank();
+        boolean allSameRank = cards.stream().allMatch(card -> card.getRank().equals(firstCardRank));
+
+        // Si toutes les cartes ont le même rang, on compare ce rang avec la suite en cours
+        if (allSameRank) {
+            return Card.compareRank(cards.get(0), new Card(cards.get(0).getSuit(), currentSuiteRank)) == 1;
+        }
+
+        // Si ce n'est pas une combinaison de même rang, vérifier que c'est une séquence
+        return Card.isSequence(cards) && cards.get(0).getRank().equals(currentSuiteRank);
+    }
+
     boolean isConsecutiveToLastPlayed(Card card) {
         return Card.compareRank(card, getLastPlayedCard()) == 1;
     }
@@ -377,24 +406,100 @@ public class Game {
     }
 
     public boolean canPlayerPlay(Player player) {
-        // Si le joueur a déjà passé dans ce pli, il ne peut plus jouer
-        if (player.hasPassed()) {
-            return false;
-        }
-
-        // Si la condition "Ou rien" est active, le joueur doit jouer une carte du rang requis
-        if (orNothingConditionActive && !player.getHand().isEmpty()) {
-            return player.getHand().stream().anyMatch(card -> card.getRank().equals(currentRequiredRank));
-        }
-
-        // Si la suite est active, le joueur doit suivre la suite
-        if (suiteActive && !player.getHand().isEmpty()) {
-            return player.getHand().stream().anyMatch(this::isFollowingSuite);
-        }
-
-        // Si aucune condition spéciale n'est active, le joueur peut jouer
-        return true;
+        return !getPlayableCardsForPlayer(player).isEmpty();
     }
+
+    public List<List<Card>> getPlayableCardsForPlayer(Player player) {
+        List<List<Card>> playableCards = new ArrayList<>();
+        List<Card> hand = player.getHand();
+
+        // Si le joueur a déjà passé ou ne peut plus jouer dans le pli en cours
+        if (player.hasPassed() || !player.canPlayInCurrentPli()) {
+            return playableCards;  // Pas de cartes jouables
+        }
+
+        // Si aucune carte n'a encore été jouée, le joueur peut jouer n'importe quelle carte
+        if (playedCards.isEmpty()) {
+            return generateAllPossibleCombinations(hand);  // Toutes les combinaisons sont possibles
+        }
+
+        // Obtenir toutes les combinaisons de la main du joueur qui respectent la taille du dernier pli
+        List<List<Card>> possibleCombinations = getCombinationsOfSize(hand, currentMoveSize);
+
+        // Vérification des règles spéciales (Suite, Ou Rien)
+        for (List<Card> combination : possibleCombinations) {
+            // Règle "Ou rien"
+            if (orNothingConditionActive) {
+                if (combination.get(0).getRank().equals(currentRequiredRank)) {
+                    playableCards.add(combination);  // Le joueur doit jouer une carte de ce rang ou passer
+                }
+            }
+            // Règle de la suite
+            else if (suiteActive) {
+                if (isFollowingSuite(combination)) {
+                    playableCards.add(combination);  // Ajouter si la suite est respectée
+                }
+            }
+            // Si aucune règle spéciale, vérifier simplement si la combinaison est jouable
+            else if (isValidMove(combination)) {
+                playableCards.add(combination);  // Ajouter les combinaisons valides
+            }
+        }
+
+        return playableCards;
+    }
+
+    private List<List<Card>> generateAllPossibleCombinations(List<Card> hand) {
+        List<List<Card>> allCombinations = new ArrayList<>();
+        for (int i = 1; i <= hand.size(); i++) {
+            allCombinations.addAll(getCombinationsOfSize(hand, i));
+        }
+        return allCombinations;
+    }
+
+    public List<List<Card>> getCombinationsOfSize(List<Card> hand, int size) {
+        return generateCombinations(hand, size);
+    }
+
+    private List<List<Card>> generateCombinations(List<Card> hand, int combinationSize) {
+        List<List<Card>> combinations = new ArrayList<>();
+
+        // Grouper les cartes par rang
+        Map<String, List<Card>> groupedByRank = hand.stream()
+                .collect(Collectors.groupingBy(Card::getRank));
+
+        // Pour chaque groupe de cartes de même rang, générer des combinaisons de taille combinationSize
+        for (Map.Entry<String, List<Card>> entry : groupedByRank.entrySet()) {
+            List<Card> sameRankCards = entry.getValue();
+
+            // Générer des combinaisons uniquement si on a assez de cartes pour former une combinaison
+            if (sameRankCards.size() >= combinationSize) {
+                combinations.addAll(generateSubsets(sameRankCards, combinationSize));
+            }
+        }
+
+        return combinations;
+    }
+
+    private List<List<Card>> generateSubsets(List<Card> cards, int subsetSize) {
+        List<List<Card>> subsets = new ArrayList<>();
+        generateSubsetsHelper(cards, new ArrayList<>(), 0, subsetSize, subsets);
+        return subsets;
+    }
+
+    private void generateSubsetsHelper(List<Card> cards, List<Card> currentSubset, int start, int subsetSize, List<List<Card>> subsets) {
+        if (currentSubset.size() == subsetSize) {
+            subsets.add(new ArrayList<>(currentSubset)); // Ajouter une nouvelle combinaison valide
+            return;
+        }
+
+        for (int i = start; i < cards.size(); i++) {
+            currentSubset.add(cards.get(i));
+            generateSubsetsHelper(cards, currentSubset, i + 1, subsetSize, subsets);
+            currentSubset.removeLast(); // Retirer la dernière carte pour explorer d'autres combinaisons
+        }
+    }
+
 
     // Getters et setters
     public Long getId() {
@@ -512,5 +617,13 @@ public class Game {
 
     public void setCurrentSuiteRank(String currentSuiteRank) {
         this.currentSuiteRank = currentSuiteRank;
+    }
+
+    public int getCurrentMoveSize() {
+        return currentMoveSize;
+    }
+
+    public void setCurrentMoveSize(int currentMoveSize) {
+        this.currentMoveSize = currentMoveSize;
     }
 }

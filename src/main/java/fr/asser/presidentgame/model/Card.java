@@ -6,6 +6,7 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
@@ -60,6 +61,30 @@ public class Card {
             }
         }
         return true;
+    }
+
+    public static boolean isConsecutive(List<Card> cards) {
+        // Si la liste est vide ou ne contient qu'une seule carte, elle n'est pas consécutive
+        if (cards == null || cards.size() < 2) {
+            return false;
+        }
+
+        // Tri des cartes par leur rang
+        List<Card> sortedCards = new ArrayList<>(cards);
+        sortedCards.sort(Card::compareRank);
+
+        // Comparaison de chaque carte avec la suivante pour s'assurer qu'elles sont consécutives
+        for (int i = 0; i < sortedCards.size() - 1; i++) {
+            Card currentCard = sortedCards.get(i);
+            Card nextCard = sortedCards.get(i + 1);
+
+            // Si le rang de la carte suivante n'est pas directement consécutif à celui de la carte courante
+            if (Card.compareRank(currentCard, nextCard) != -1) {
+                return false;
+            }
+        }
+
+        return true; // Si toutes les cartes sont consécutives
     }
 
     @Override
