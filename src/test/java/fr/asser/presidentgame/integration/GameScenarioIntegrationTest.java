@@ -36,7 +36,6 @@ class GameScenarioIntegrationTest {
 
     @Test
     void testCompleteGame() {
-        // Phase 1: Initialisation et distribution des cartes
         assertNotNull(game);
         assertEquals(4, game.getPlayers().size());
         assertEquals(GameState.INITIALIZED, game.getState());
@@ -100,6 +99,7 @@ class GameScenarioIntegrationTest {
         simulateTurn(3, null);
         simulateTurn(0, null);
         simulateTurn(1, null);
+        simulateTurn(2, null);
 
         assertTrue(game.getPlayedCards().isEmpty());
         assertEquals(2, game.getCurrentPlayerIndex());
@@ -120,6 +120,7 @@ class GameScenarioIntegrationTest {
         simulateTurn(1, null);
         simulateTurn(2, null);
         simulateTurn(3, null);
+        simulateTurn(0, null);
 
         assertTrue(game.getPlayedCards().isEmpty());
         assertEquals(0, game.getCurrentPlayerIndex());
@@ -163,6 +164,7 @@ class GameScenarioIntegrationTest {
         simulateTurn(3, null);
         simulateTurn(0, null);
         simulateTurn(1, null);
+        simulateTurn(2, null);
 
         assertTrue(game.getPlayedCards().isEmpty());
         assertEquals(2, game.getCurrentPlayerIndex());
@@ -171,6 +173,7 @@ class GameScenarioIntegrationTest {
         simulateTurn(3, null);
         simulateTurn(0, null);
         simulateTurn(1, null);
+        simulateTurn(2, null);
 
         assertTrue(game.getPlayedCards().isEmpty());
         assertEquals(2, game.getCurrentPlayerIndex());
@@ -193,6 +196,7 @@ class GameScenarioIntegrationTest {
         simulateTurn(3, null);
         simulateTurn(0, null);
         simulateTurn(1, null);
+        simulateTurn(2, null);
 
         assertTrue(game.getPlayedCards().isEmpty());
         assertEquals(2, game.getCurrentPlayerIndex());

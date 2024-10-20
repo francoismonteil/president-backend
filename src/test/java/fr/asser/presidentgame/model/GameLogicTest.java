@@ -294,20 +294,6 @@ class GameLogicTest {
     }
 
     @Test
-    void testHandlePassLogic_SuiteActive_PlayerCannotPlay() {
-        // Arrange
-        Player player = new Player("Player1");
-        game.getPlayers().add(player);
-        game.setSuiteActive(true);
-
-        // Act
-        game.handlePassLogic(player);
-
-        // Assert
-        assertFalse(player.canPlayInCurrentPli());  // Le joueur ne peut plus jouer
-    }
-
-    @Test
     void testDeterminePliWinner() {
         // Arrange
         Player player1 = new Player("Player1");

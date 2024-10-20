@@ -94,7 +94,6 @@ public class Game {
         Player currentPlayer = getCurrentPlayer(playerId);
 
         handlePassLogic(currentPlayer);
-        currentPlayerIndex = (currentPlayerIndex + 1) % players.size();
     }
 
     public void redistributeCards() {
@@ -168,9 +167,16 @@ public class Game {
         currentPlayer.passTurn();
 
         if (allPlayersHavePassed()) {
+            Player winner = determinePliWinner(this.playedCards);
+            if (winner != null) {
+                currentPlayerIndex = players.indexOf(winner); // Le vainqueur du pli prend le tour
+            }
             resetAfterRound();
             currentPlayerIndex = getLastPlayerWhoPlayedIndex();
+            return;
         }
+
+        currentPlayerIndex = (currentPlayerIndex + 1) % players.size();
     }
 
     void initializeDeck() {
@@ -216,6 +222,10 @@ public class Game {
     }
 
     Player determinePliWinner(List<Card> lastPlayedCards) {
+        if(lastPlayedCards.isEmpty()) {
+            return null;
+        }
+
         Card highestCard = lastPlayedCards.getLast();
         Player winner = null;
 
@@ -253,7 +263,7 @@ public class Game {
     }
 
     boolean allPlayersHavePassed() {
-        return getActivePlayersCount() == 1;
+        return getActivePlayersCount() == 0;
     }
 
     private int getActivePlayersCount() {
