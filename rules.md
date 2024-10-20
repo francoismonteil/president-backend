@@ -1,62 +1,55 @@
-# Règles du jeu : Super Président
+# Règles du jeu "Super Président"
 
-Bienvenue dans **Super Président**, un jeu de cartes inspiré des classiques jeux francophones, avec des twists stratégiques pour dynamiser vos parties !
+## Présentation du jeu
 
-## Objectif du jeu
+Le **Super Président** est un jeu de cartes dynamique inspiré des jeux de défausse francophones. Le but du jeu est de se débarrasser de toutes ses cartes pour atteindre le rang suprême de Président, tandis que les derniers joueurs à finir seront pénalisés.
 
-Le but est de se débarrasser de toutes ses cartes le plus rapidement possible afin de gravir les échelons et devenir **Président**. Le joueur qui termine en dernier devient le **Trouduc** (ou le dernier rang selon les termes de votre groupe).
+Le jeu se joue généralement avec un jeu de 52 cartes, mais des variations peuvent être ajoutées pour pimenter les parties !
 
-## Distribution des cartes
+## Objectif
 
-- Le jeu utilise un jeu de cartes standard sans jokers.
-- Toutes les cartes sont distribuées équitablement aux joueurs.
-- Le **Président** de la manche précédente distribue ensuite des cartes bonus à certains joueurs selon leurs rangs.
+Le but du jeu est de se défaire de toutes ses cartes avant les autres joueurs pour gagner des rangs de prestige, le premier étant **Président**, et le dernier **Trouduc**. Le classement des joueurs influence la redistribution des cartes lors de la manche suivante.
 
-## Déroulement du tour
+## Règles de base
 
-Les joueurs jouent à tour de rôle, en suivant un sens horaire.
+1. **Distribution des cartes** :
+    - Les cartes sont distribuées de manière égale entre les joueurs.
+    - Le jeu se joue avec les cartes traditionnelles : 3, 4, 5, 6, 7, 8, 9, 10, Valet (J), Dame (Q), Roi (K), As (A), et 2.
 
-### Jouer une carte
+2. **Déroulement d'un tour** :
+    - Chaque joueur, à son tour, joue une carte ou une combinaison de cartes. La carte jouée doit être d'un rang supérieur ou égal à la dernière carte jouée.
+    - Le joueur peut également passer son tour. Cependant, il **n'est possible de passer que s'il est impossible de jouer** (aucune combinaison possible avec les cartes en main).
+    - Lorsqu'un joueur a joué toutes ses cartes, il gagne un rang. Le premier joueur à se débarrasser de toutes ses cartes devient le **Président**, et ainsi de suite.
 
-- À son tour, un joueur peut poser une ou plusieurs cartes de sa main.
-- **Carte simple** : Le joueur doit jouer une carte d'une valeur supérieure ou égale à la dernière carte posée.
-- **Paire** : Si le joueur précédent a joué deux cartes de même valeur, le joueur peut poser deux cartes de valeur supérieure ou égale.
-- **Suite** : Un joueur peut déclencher l'option "Suite" en jouant des cartes qui suivent immédiatement en rang celles jouées précédemment, par exemple, un **8** après un **7**.
+3. **Pli et suites** :
+    - Un pli peut être joué avec des cartes individuelles ou des combinaisons de cartes de même rang (paires ou suites de cartes).
+    - Si une **suite** est activée (par un joueur jouant une suite de cartes consécutives), les autres joueurs doivent respecter cette suite en jouant des cartes qui suivent cette série ou passer.
 
-### Conditions de jeu
+4. **La règle "Ou Rien"** :
+    - Si deux cartes de même rang sont jouées consécutivement, la règle "Ou Rien" s'active. Les joueurs doivent alors jouer une carte de ce même rang ou passer.
+    - Cette règle se désactive si un autre type de mouvement est effectué ou à la fin du pli.
 
-- **Règle du "Ou rien"** : Si deux cartes consécutives du même rang sont jouées, les joueurs suivants doivent jouer une carte du même rang ou passer leur tour.
-- **Règle de la "Suite"** : Si la suite est activée, les joueurs suivants doivent continuer à jouer des cartes qui suivent la même suite. La suite se désactive uniquement à la fin du pli.
+5. **Terminer un pli en dehors de son tour** :
+    - Un joueur peut jouer en dehors de son tour **s'il peut fermer le pli** en posant toutes les cartes restantes du même rang que celles déjà jouées dans ce pli.
+    - **Attention** : Cette règle ne s'applique pas si vous pouvez fermer le pli avec un nombre de cartes différent de celui joué dans le pli.
+    - **Exception** : Cette règle ne s'applique pas si le joueur tente de fermer le pli avec des cartes de rang 2.
 
-### Passer son tour
+6. **La carte 2** :
+    - La carte de rang 2 est une carte spéciale. Elle bat toutes les autres cartes, mais elle **ne peut pas être utilisée pour fermer un pli**.
+    - Jouer un 2 met immédiatement fin au pli et permet au joueur qui l'a joué de commencer le prochain.
 
-- Il est **obligatoire de jouer** si un joueur a une carte qu'il peut poser.
-- Un joueur **ne peut passer** que si **aucune** de ses cartes ne peut être jouée.
-- Si le joueur peut jouer une carte valide, il doit la jouer et ne peut pas passer.
+## Redistribution des cartes
 
-### Fin du pli
+- À la fin de chaque manche, les joueurs redistribuent certaines cartes selon leurs rangs :
+    - Le **Président** échange ses deux plus mauvaises cartes avec le **Trouduc**, qui lui donne en échange ses deux meilleures cartes.
+    - Le **Vice-Président** échange une carte avec le **Vice-Trouduc** de manière similaire.
 
-- Le pli se termine si 4 cartes de même valeur ont été jouées ou si tous les joueurs sauf un ont passé.
-- Le joueur ayant joué la carte la plus forte dans le pli devient le **gagnant du pli** et commence le tour suivant.
+## Fin de partie
 
-## Règles supplémentaires
+- Le jeu se termine lorsque les joueurs ont terminé tous leurs plis et qu'un nouveau classement est établi.
+- Les joueurs recommencent une nouvelle manche avec leur nouveau rang.
 
-- **Carte "2"** : Si un joueur joue un **2**, il remporte immédiatement le pli, et le tour passe au joueur suivant.
-- **Redistribution des cartes** : À la fin de chaque manche, le **Président** échange des cartes avec le **Trouduc**. Le **Président** donne ses pires cartes, et le **Trouduc** lui donne ses meilleures cartes.
+## Règles spéciales
 
-## Rangs
-
-Les joueurs sont classés à la fin de chaque manche :
-1. **Président** : Le premier joueur à se débarrasser de toutes ses cartes.
-2. **Vice-Président** : Le deuxième joueur à finir.
-3. **Vice-Trouduc** : L'avant-dernier joueur.
-4. **Trouduc** : Le dernier joueur à avoir encore des cartes en main.
-
-## Fin de la partie
-
-La partie se termine quand tous les joueurs ont joué et qu'il ne reste plus de cartes à jouer. Le **Président** est celui qui a terminé le plus rapidement, et le **Trouduc** est celui qui a mis le plus de temps à se débarrasser de ses cartes.
-
-## Nouveautés
-
-- **Impossible de passer** : Il est interdit de passer son tour si le joueur possède une carte jouable. Un joueur ne peut passer que lorsqu'il n'a **aucune possibilité** de jouer une carte valide.
-- **Suite forcée** : Si un joueur active la "Suite", les autres joueurs sont contraints de jouer des cartes qui suivent cette suite.
+- **Passer son tour** : Un joueur ne peut passer que s'il est **impossible** pour lui de jouer avec les cartes en main.
+- **Jouer en dehors de son tour** : Si un joueur peut **terminer le pli** en posant toutes les cartes restantes d'un même rang (hors 2), il peut jouer même si ce n'est pas son tour, mais uniquement avec le même nombre de cartes que celles déjà jouées dans le pli.

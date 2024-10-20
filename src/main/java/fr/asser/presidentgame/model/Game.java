@@ -72,7 +72,15 @@ public class Game {
 
     public void playCards(Long playerId, List<Card> cards, boolean suiteOption) {
         ensureState(GameState.IN_PROGRESS, "Cannot play cards in the current game state.");
-        Player currentPlayer = getCurrentPlayer(playerId);
+        Player currentPlayer = getPlayerById(playerId);
+
+        // Vérifier si le joueur joue en dehors de son tour pour terminer le pli
+        if (!isPlayerTurn(playerId) && canClosePliWithCards(currentPlayer, cards)) {
+            closePliWithCards(currentPlayer, cards); // Le joueur ferme le pli
+            return;
+        }
+
+        currentPlayer = getCurrentPlayer(playerId);
 
         validatePlayConditions(cards);
         handleSuiteOption(suiteOption, cards);
@@ -87,8 +95,37 @@ public class Game {
             }
         }
 
-        // Le traitement post-pli détermine si le pli est terminé
         handlePostPlayLogic(cards);
+    }
+
+
+    private boolean canClosePliWithCards(Player player, List<Card> cards) {
+        // Ne pas permettre de fermer avec un 2
+        if (cards.stream().anyMatch(card -> card.getRank().equals("2"))) {
+            return false;
+        }
+
+        // Récupérer les dernières cartes jouées
+        List<Card> lastPlayedCards = playedCards;
+
+        // Vérifier que les cartes jouées sont du même rang que les dernières cartes jouées
+        if (!Card.areSameRank(cards) || !Card.areSameRank(lastPlayedCards)) {
+            return false;
+        }
+
+        // Vérifier si les cartes jouées permettent de compléter les 4 cartes du pli
+        long matchingCardsCount = lastPlayedCards.stream()
+                .filter(card -> card.getRank().equals(cards.getFirst().getRank()))
+                .count();
+
+        return matchingCardsCount + cards.size() == 4;
+    }
+
+    private void closePliWithCards(Player player, List<Card> cards) {
+        processPlayerMove(player, cards); // Le joueur joue ses cartes
+        playedCards.addAll(cards); // Ajouter les cartes au pli
+        resetAfterRound(); // Réinitialiser le pli
+        currentPlayerIndex = players.indexOf(player); // Le joueur qui ferme le pli prend le tour
     }
 
     public void passTurn(Long playerId) {
@@ -122,6 +159,17 @@ public class Game {
         if (state != expectedState) {
             throw new IllegalStateException(errorMessage);
         }
+    }
+
+    private boolean isPlayerTurn(Long playerId) {
+        return players.get(currentPlayerIndex).getId().equals(playerId);
+    }
+
+    public Player getPlayerById(Long playerId) {
+        return players.stream()
+                .filter(player -> player.getId().equals(playerId))
+                .findFirst()
+                .orElseThrow(() -> new IllegalArgumentException("Player with id " + playerId + " not found"));
     }
 
     private Player getCurrentPlayer(Long playerId) {
