@@ -106,26 +106,17 @@ class GameScenarioIntegrationTest {
         simulateTurn(0, List.of(new Card("Clubs", "6"), new Card("Hearts", "6")));
         simulateTurn(1, List.of(new Card("Hearts", "10"), new Card("Spades", "10")));
         simulateTurn(2, List.of(new Card("Clubs", "K"), new Card("Hearts", "K")));
-        simulateTurn(3, null);
+        simulateTurn(3, List.of(new Card("Clubs", "A"), new Card("Hearts", "A")));
         simulateTurn(0, null);
         simulateTurn(1, null);
         simulateTurn(2, null);
-
-        assertTrue(game.getPlayedCards().isEmpty());
-        assertEquals(2, game.getCurrentPlayerIndex());
-
-        // Deuxième pli :
-        simulateTurn(2, List.of(new Card("Spades", "3")));
-        simulateTurn(3, List.of(new Card("Diamonds", "4")));
-        simulateTurn(0, List.of(new Card("Hearts", "4")));
-        simulateTurn(1, List.of(new Card("Clubs", "4")));
-        simulateTurn(2, null);
-        simulateTurn(3, List.of(new Card("Spades", "4")));
+        simulateTurn(3, null);
 
         assertTrue(game.getPlayedCards().isEmpty());
         assertEquals(3, game.getCurrentPlayerIndex());
 
-        simulateTurn(3, List.of(new Card("Clubs", "8"), new Card("Hearts", "8"), new Card("Spades", "8")));
+        // Deuxième pli :
+        simulateTurn(3, List.of(new Card("Clubs", "8"), new Card("Spades", "8"), new Card("Hearts", "8")));
         simulateTurn(0, List.of(new Card("Diamonds", "9"), new Card("Hearts", "9"), new Card("Spades", "9")), true);
         simulateTurn(1, null);
         simulateTurn(2, null);
@@ -137,39 +128,17 @@ class GameScenarioIntegrationTest {
 
         simulateTurn(0, List.of(new Card("Clubs", "3")));
         simulateTurn(1, List.of(new Card("Diamonds", "3")));
-        simulateTurn(2, null);
-        simulateTurn(3, List.of(new Card("Spades", "5")));
-        simulateTurn(0, List.of(new Card("Diamonds", "8")));
-        simulateTurn(1, List.of(new Card("Hearts", "Q")));
-        simulateTurn(2, null);
-        simulateTurn(3, List.of(new Card("Hearts", "2")));
-
-        assertTrue(game.getPlayedCards().isEmpty());
-        assertEquals(3, game.getCurrentPlayerIndex());
-
-        simulateTurn(3, List.of(new Card("Hearts", "A"), new Card("Diamonds", "A"),
-                                          new Card("Spades", "A"), new Card("Clubs", "A")));
-
-        assertTrue(game.getPlayedCards().isEmpty());
-        assertEquals(3, game.getCurrentPlayerIndex());
-
-        simulateTurn(3, List.of(new Card("Hearts", "7")));
-        simulateTurn(0, List.of(new Card("Clubs", "Q")));
-        simulateTurn(1, List.of(new Card("Diamonds", "K")));
-        simulateTurn(2, List.of(new Card("Clubs", "2")));
-
-        assertTrue(game.getPlayedCards().isEmpty());
-        assertEquals(2, game.getCurrentPlayerIndex());
-
-        simulateTurn(2, List.of(new Card("Hearts", "6"), new Card("Diamonds", "6")));
-        simulateTurn(3, null);
-        simulateTurn(0, List.of(new Card("Clubs", "J"), new Card("Spades", "J")));
-        simulateTurn(1, List.of(new Card("Diamonds", "J"), new Card("Hearts", "J")));
+        simulateTurn(2, List.of(new Card("Spades", "3")));
+        simulateTurn(1, List.of(new Card("Hearts", "3")));
 
         assertTrue(game.getPlayedCards().isEmpty());
         assertEquals(1, game.getCurrentPlayerIndex());
 
-        simulateTurn(1, List.of(new Card("Diamonds", "5"), new Card("Hearts", "5")));
+        simulateTurn(1, List.of(new Card("Hearts", "5"), new Card("Diamonds", "5")));
+        simulateTurn(2, List.of(new Card("Hearts", "6"), new Card("Diamonds", "6")), true);
+        simulateTurn(3, null);
+        simulateTurn(0, null);
+        simulateTurn(1, null);
         simulateTurn(2, List.of(new Card("Clubs", "7"), new Card("Spades", "7")));
         simulateTurn(3, null);
         simulateTurn(0, null);
@@ -179,18 +148,49 @@ class GameScenarioIntegrationTest {
         assertTrue(game.getPlayedCards().isEmpty());
         assertEquals(2, game.getCurrentPlayerIndex());
 
-        simulateTurn(2, List.of(new Card("Diamonds", "Q"), new Card("Spades", "Q")));
-        simulateTurn(3, null);
+        simulateTurn(2, List.of(new Card("Clubs", "5")));
+        simulateTurn(3, List.of(new Card("Spades", "5")));
         simulateTurn(0, null);
-        simulateTurn(1, null);
-        simulateTurn(2, null);
+        simulateTurn(1, List.of(new Card("Diamonds", "7")));
+        simulateTurn(2, List.of(new Card("Clubs", "9")));
+        simulateTurn(3, List.of(new Card("Clubs", "10")));
+        simulateTurn(0, null);
+        simulateTurn(1, List.of(new Card("Hearts", "Q")));
+        simulateTurn(2, List.of(new Card("Clubs", "2")));
 
         assertTrue(game.getPlayedCards().isEmpty());
         assertEquals(2, game.getCurrentPlayerIndex());
 
-        simulateTurn(2, List.of(new Card("Clubs", "5")));
-        simulateTurn(3, List.of(new Card("Clubs", "10")));
-        simulateTurn(0, List.of(new Card("Spades", "2")));
+        simulateTurn(2, List.of(new Card("Diamonds", "Q"), new Card("Spades", "Q")));
+        simulateTurn(3, List.of(new Card("Diamonds", "A"), new Card("Spades", "A")));
+        simulateTurn(0, null);
+        simulateTurn(1, null);
+        simulateTurn(2, null);
+        simulateTurn(3, null);
+
+        assertTrue(game.getPlayedCards().isEmpty());
+        assertEquals(3, game.getCurrentPlayerIndex());
+
+        simulateTurn(3, List.of(new Card("Spades", "4"), new Card("Diamonds", "4")));
+        simulateTurn(0, List.of(new Card("Spades", "J"), new Card("Clubs", "J")));
+        simulateTurn(1, List.of(new Card("Diamonds", "J"), new Card("Hearts", "J")));
+
+        assertTrue(game.getPlayedCards().isEmpty());
+        assertEquals(1, game.getCurrentPlayerIndex());
+
+        simulateTurn(1, List.of(new Card("Clubs", "4")));
+        simulateTurn(2, List.of(new Card("Diamonds", "10")));
+        simulateTurn(3, List.of(new Card("Hearts", "2")));
+
+        assertTrue(game.getPlayedCards().isEmpty());
+        assertEquals(3, game.getCurrentPlayerIndex());
+
+        simulateTurn(3, List.of(new Card("Hearts", "7")));
+        simulateTurn(0, List.of(new Card("Diamonds", "8")), true);
+        simulateTurn(1, null);
+        simulateTurn(2, null);
+        simulateTurn(3, null);
+        simulateTurn(0, null);
 
         assertTrue(game.getPlayedCards().isEmpty());
         assertEquals(0, game.getCurrentPlayerIndex());
@@ -201,24 +201,14 @@ class GameScenarioIntegrationTest {
         assertTrue(game.getPlayedCards().isEmpty());
         assertEquals(1, game.getCurrentPlayerIndex());
 
-        simulateTurn(1, List.of(new Card("Diamonds", "7")));
-        simulateTurn(2, List.of(new Card("Clubs", "9")));
-        simulateTurn(3, null);
-        simulateTurn(0, null);
-        simulateTurn(1, null);
-        simulateTurn(2, null);
-
-        assertTrue(game.getPlayedCards().isEmpty());
-        assertEquals(2, game.getCurrentPlayerIndex());
-
-        simulateTurn(2, List.of(new Card("Diamonds", "10")));
+        simulateTurn(1, List.of(new Card("Diamonds", "K")));
 
         // À la fin, tous les joueurs doivent avoir un rang :
         assertEquals(4, game.getRanks().size());  // Tous les joueurs ont un rang
-        assertEquals(1, game.getRanks().get(game.getPlayers().get(3))); //Président
-        assertEquals(2, game.getRanks().get(game.getPlayers().get(0))); //Vice-Président
-        assertEquals(3, game.getRanks().get(game.getPlayers().get(2))); //Vice-trouduc
-        assertEquals(4, game.getRanks().get(game.getPlayers().get(1))); //Trouduc
+        assertEquals(1, game.getRanks().get(game.getPlayers().get(2))); //Vice-Président
+        assertEquals(2, game.getRanks().get(game.getPlayers().get(3))); //Président
+        assertEquals(3, game.getRanks().get(game.getPlayers().get(1))); //Vice-trouduc
+        assertEquals(4, game.getRanks().get(game.getPlayers().get(0))); //Trouduc
     }
 
 
