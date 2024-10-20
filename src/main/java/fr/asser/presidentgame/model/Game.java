@@ -41,11 +41,14 @@ public class Game {
     @Enumerated(EnumType.STRING)
     private GameState state = GameState.INITIALIZED;
 
+    private int turnPlayed = 0;
     private int currentPlayerIndex = 0;
     private boolean orNothingConditionActive = false;
     private String currentRequiredRank = null;
     private boolean suiteActive = false;
     private String currentSuiteRank = null;
+    private boolean reverseActive = false;
+    private String currentReverseRank = null;
     private int currentMoveSize = 0; // 0 indique qu'aucun mouvement n'a encore été fait
 
     public Game() {
@@ -181,13 +184,19 @@ public class Game {
     }
 
     void validatePlayConditions(List<Card> cards) {
-        // Validation des règles du jeu
+        // Règle "Ou rien"
         if (orNothingConditionActive && !cards.isEmpty() && !cards.get(0).getRank().equals(currentRequiredRank)) {
             throw new InvalidMoveException("You must play a card of rank " + currentRequiredRank + " or pass.");
         }
 
+        // Règle "Suite" active
         if (suiteActive && !cards.isEmpty() && !isFollowingSuite(cards.get(0))) {
             throw new InvalidMoveException("You must follow the suite or pass.");
+        }
+
+        // Règle "Reverse" active
+        if (reverseActive && !cards.isEmpty() && !isFollowingReverse(cards.get(0))) {
+            throw new InvalidMoveException("You must play a card lower than the current rank or pass.");
         }
 
         if (!isValidMove(cards)) {
@@ -195,21 +204,24 @@ public class Game {
         }
     }
 
+
     private void processPlayerMove(Player currentPlayer, List<Card> cards) {
         cards.forEach(currentPlayer::playCard);
         playedCards.addAll(cards);
     }
 
     void handleSuiteOption(boolean suiteOption, List<Card> cards) {
-        if (suiteOption && canTriggerSuite() && isConsecutiveToLastPlayed(cards.get(0))) {
-            activateSuite(cards.get(0));
+        if (suiteOption && canTriggerSuite() && isConsecutiveToLastPlayed(cards.getFirst())) {
+            activateSuite(cards.getFirst());
+        } else if (suiteOption && canTriggerReverse() && isReverseToLastPlayed(cards.getFirst())) {
+            activateReverse(cards.getFirst());
         }
     }
 
     void handlePassLogic(Player currentPlayer) {
         boolean alreadyPassed = currentPlayer.hasPassed();
 
-        if (suiteActive) {
+        if (suiteActive || reverseActive) {
             currentPlayer.setCanPlayInCurrentPli(false);
         }
 
@@ -229,7 +241,7 @@ public class Game {
             currentPlayerIndex = getLastPlayerWhoPlayedIndex();
             return;
         }
-
+        turnPlayed++;
         currentPlayerIndex = (currentPlayerIndex + 1) % players.size();
     }
 
@@ -280,6 +292,7 @@ public class Game {
             return;
         }
         checkOrNothingRule(cards);
+        turnPlayed++;
         currentPlayerIndex = (currentPlayerIndex + 1) % players.size();
     }
 
@@ -305,8 +318,12 @@ public class Game {
         clearPlayedCards();
         orNothingConditionActive = false;
         suiteActive = false;
+        reverseActive = false;
         currentRequiredRank = null;
+        currentSuiteRank = null;
+        currentReverseRank = null;
         currentMoveSize = 0;
+        turnPlayed = 0;
         resetPlayers();  // Réinitialiser l'état de passage des joueurs
     }
 
@@ -374,35 +391,74 @@ public class Game {
         return Card.compareRank(card, new Card(card.getSuit(), currentSuiteRank)) == 1;
     }
 
+    private boolean isFollowingReverse(Card card) {
+        return Card.compareRank(card, new Card(card.getSuit(), currentReverseRank)) == -1;
+    }
+
     private boolean isFollowingSuite(List<Card> cards) {
         if (cards.isEmpty()) {
             return false;
         }
 
+        var compareRank = currentSuiteRank != null ? currentSuiteRank : getLastPlayedCard().getRank();
+
         // Vérifier que toutes les cartes ont le même rang (si une paire ou triple est en jeu)
-        String firstCardRank = cards.get(0).getRank();
+        String firstCardRank = cards.getFirst().getRank();
         boolean allSameRank = cards.stream().allMatch(card -> card.getRank().equals(firstCardRank));
 
         // Si toutes les cartes ont le même rang, on compare ce rang avec la suite en cours
         if (allSameRank) {
-            return Card.compareRank(cards.get(0), new Card(cards.get(0).getSuit(), currentSuiteRank)) == 1;
+            return Card.compareRank(cards.getFirst(), new Card(cards.getFirst().getSuit(), compareRank)) == 1;
         }
 
         // Si ce n'est pas une combinaison de même rang, vérifier que c'est une séquence
-        return Card.isSequence(cards) && cards.get(0).getRank().equals(currentSuiteRank);
+        return Card.isSequence(cards) && cards.getFirst().getRank().equals(compareRank);
+    }
+
+    private boolean isFollowingReverse(List<Card> cards) {
+        if (cards.isEmpty()) {
+            return false;
+        }
+
+        var compareRank = currentReverseRank != null ? currentReverseRank : getLastPlayedCard().getRank();
+
+        // Vérifier que toutes les cartes ont le même rang (si une paire ou triple est en jeu)
+        String firstCardRank = cards.getFirst().getRank();
+        boolean allSameRank = cards.stream().allMatch(card -> card.getRank().equals(firstCardRank));
+
+        // Si toutes les cartes ont le même rang, on compare ce rang avec la suite en cours
+        if (allSameRank) {
+            return Card.compareRank(cards.getFirst(), new Card(cards.getFirst().getSuit(), compareRank)) == -1;
+        }
+
+        // Si ce n'est pas une combinaison de même rang, vérifier que c'est une séquence
+        return Card.isSequence(cards) && cards.getFirst().getRank().equals(compareRank);
     }
 
     boolean isConsecutiveToLastPlayed(Card card) {
         return Card.compareRank(card, getLastPlayedCard()) == 1;
     }
 
+    private boolean isReverseToLastPlayed(Card card) {
+        return Card.compareRank(card, getLastPlayedCard()) == -1;
+    }
+
     private boolean canTriggerSuite() {
-        return !playedCards.isEmpty() && playedCards.size() <= 3;
+        return !playedCards.isEmpty() && playedCards.size() <= 3 && turnPlayed == 1;
+    }
+
+    private boolean canTriggerReverse() {
+        return !playedCards.isEmpty() && playedCards.size() <= 3 && turnPlayed == 1;
     }
 
     private void activateSuite(Card card) {
         suiteActive = true;
         currentSuiteRank = card.getRank();
+    }
+
+    private void activateReverse(Card card) {
+        reverseActive = true;
+        currentReverseRank = card.getRank();
     }
 
     private void clearPlayedCards() {
@@ -478,8 +534,13 @@ public class Game {
         for (List<Card> combination : possibleCombinations) {
             // Règle "Ou rien"
             if (orNothingConditionActive) {
-                if (combination.get(0).getRank().equals(currentRequiredRank)) {
+                if (combination.getFirst().getRank().equals(currentRequiredRank)) {
                     playableCards.add(combination);  // Le joueur doit jouer une carte de ce rang ou passer
+                }
+            }
+            else if (reverseActive) {
+                if (isFollowingReverse(combination)) {
+                    playableCards.add(combination);  // Ajouter si la règle "Reverse" est respectée
                 }
             }
             // Règle de la suite
@@ -491,6 +552,10 @@ public class Game {
             // Si aucune règle spéciale, vérifier simplement si la combinaison est jouable
             else if (isValidMove(combination)) {
                 playableCards.add(combination);  // Ajouter les combinaisons valides
+            }
+
+            if (turnPlayed == 1 && (isFollowingReverse(combination) || isFollowingSuite(combination))) {
+                playableCards.add(combination);  // Ajouter si la règle "Reverse" est respectée
             }
         }
 
@@ -673,5 +738,29 @@ public class Game {
 
     public void setCurrentMoveSize(int currentMoveSize) {
         this.currentMoveSize = currentMoveSize;
+    }
+
+    public int getTurnPlayed() {
+        return turnPlayed;
+    }
+
+    public void setTurnPlayed(int turnPlayed) {
+        this.turnPlayed = turnPlayed;
+    }
+
+    public boolean isReverseActive() {
+        return reverseActive;
+    }
+
+    public void setReverseActive(boolean reverseActive) {
+        this.reverseActive = reverseActive;
+    }
+
+    public String getCurrentReverseRank() {
+        return currentReverseRank;
+    }
+
+    public void setCurrentReverseRank(String currentReverseRank) {
+        this.currentReverseRank = currentReverseRank;
     }
 }

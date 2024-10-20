@@ -282,6 +282,7 @@ class GameLogicTest {
         // Arrange
         List<Card> lastPlayed = List.of(new Card("Hearts", "7"));
         game.getPlayedCards().addAll(lastPlayed);
+        game.setTurnPlayed(1);
 
         List<Card> cardsToPlay = List.of(new Card("Hearts", "8"));  // Carte qui suit la suite
 
