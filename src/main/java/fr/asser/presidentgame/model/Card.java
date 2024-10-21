@@ -6,10 +6,7 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Objects;
+import java.util.*;
 
 @Entity
 public class Card {
@@ -47,6 +44,21 @@ public class Card {
         List<String> ranks = Arrays.asList("3", "4", "5", "6", "7", "8", "9", "10", "J", "Q", "K", "A", "2");
         return ranks.indexOf(card1.getRank()) - ranks.indexOf(card2.getRank());
     }
+
+    public static int compareRank(Card card1, Card card2, boolean revolutionActive) {
+        List<String> ranks = Arrays.asList("3", "4", "5", "6", "7", "8", "9", "10", "J", "Q", "K", "A", "2");
+
+        if (revolutionActive) {
+            // Si la Révolution est active, inverser l'ordre des rangs
+            Collections.reverse(ranks);
+        }
+
+        int rank1 = ranks.indexOf(card1.getRank());
+        int rank2 = ranks.indexOf(card2.getRank());
+
+        return Integer.compare(rank1, rank2);
+    }
+
 
     public static boolean areSameRank(List<Card> cards) {
         return cards.stream().map(Card::getRank).distinct().count() == 1;

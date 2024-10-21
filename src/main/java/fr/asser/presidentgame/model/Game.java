@@ -50,6 +50,7 @@ public class Game {
     private boolean reverseActive = false;
     private String currentReverseRank = null;
     private int currentMoveSize = 0; // 0 indique qu'aucun mouvement n'a encore été fait
+    private boolean revolutionActive = false;
 
     public Game() {
         initializeDeck();
@@ -103,7 +104,6 @@ public class Game {
                 ranks.put(remainingPlayers.getFirst(), ranks.size() + 1);
             }
         }
-
 
         handlePostPlayLogic(cards);
     }
@@ -286,7 +286,13 @@ public class Game {
             }
         }
 
-        if(cards.stream().anyMatch(card -> Objects.equals(card.getRank(), "2"))) {
+        if (cards.size() == 4 && Card.areSameRank(cards)) {
+            triggerRevolution();
+            return;
+        }
+
+        if(cards.stream().anyMatch(card -> reverseActive ? Objects.equals(card.getRank(), "3")
+                                                         : Objects.equals(card.getRank(), "2"))) {
             resetAfterRound();
             return;
         }
@@ -331,6 +337,7 @@ public class Game {
         currentReverseRank = null;
         currentMoveSize = 0;
         turnPlayed = 0;
+        revolutionActive = false;
         resetPlayers();  // Réinitialiser l'état de passage des joueurs
     }
 
@@ -347,6 +354,10 @@ public class Game {
             orNothingConditionActive = false;
             currentRequiredRank = null;
         }
+    }
+
+    private void triggerRevolution() {
+        revolutionActive = true;
     }
 
     boolean allPlayersHavePassed() {
@@ -375,11 +386,11 @@ public class Game {
     }
 
     private boolean isSingleCardMoveValid(List<Card> cards) {
-        return Card.compareRank(cards.get(0), getLastPlayedCard()) >= 0;
+        return Card.compareRank(cards.getFirst(), getLastPlayedCard()) >= 0;
     }
 
     private boolean isSameRankMove(List<Card> cards) {
-        return Card.compareRank(cards.get(0), getLastPlayedCards(cards.size()).get(0)) >= 0;
+        return Card.compareRank(cards.getFirst(), getLastPlayedCards(cards.size()).getFirst()) >= 0;
     }
 
     private boolean isSequenceMove(List<Card> cards) {
@@ -387,11 +398,11 @@ public class Game {
         if (!Card.isSequence(lastPlayed)) {
             throw new InvalidMoveException("Last played cards are not a sequence.");
         }
-        return Card.compareRank(cards.get(0), lastPlayed.get(0)) > 0;
+        return Card.compareRank(cards.getFirst(), lastPlayed.getFirst()) > 0;
     }
 
     private Card getLastPlayedCard() {
-        return playedCards.get(playedCards.size() - 1);
+        return playedCards.getLast();
     }
 
     private boolean isFollowingSuite(Card card) {
