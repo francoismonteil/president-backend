@@ -102,6 +102,7 @@ public class Game {
             var remainingPlayers = players.stream().filter(player -> !player.getHand().isEmpty()).toList();
             if (remainingPlayers.size() == 1) {
                 ranks.put(remainingPlayers.getFirst(), ranks.size() + 1);
+                endGame();
             }
         }
 
