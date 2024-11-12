@@ -58,6 +58,24 @@ public class GameService {
         return updatedGame;
     }
 
+    public Game restartRound(Long gameId) {
+        Game game = getGame(gameId);
+
+        // Vérifiez que la manche est terminée avant de redémarrer
+        if (game.getState() != GameState.FINISHED) {
+            throw new IllegalStateException("Cannot restart the game until the current round is finished.");
+        }
+
+        // Réinitialiser la partie pour une nouvelle manche
+        game.resetForNewRound();
+
+        Game updatedGame = gameRepository.save(game);
+        messagingTemplate.convertAndSend("/topic/gameState", updatedGame);
+        logGameAction(gameId, getCurrentUser().getId(), "Game restarted for a new round");
+
+        return updatedGame;
+    }
+
     public void playCards(Long gameId, Long playerId, List<Card> cards) {
         Game game = getGame(gameId);
         validateGameAndPlayerAccess(game, playerId); // Validation consolidée
@@ -82,6 +100,13 @@ public class GameService {
         game.setIsSaved(true);
         gameRepository.save(game);
         logGameAction(id, getCurrentUser().getId(), "Game saved"); // Log centralisé
+    }
+
+    public void saveGame(Game game) {
+        validateUserAccess(game);
+        game.setIsSaved(true);
+        gameRepository.save(game);
+        logGameAction(game.getId(), getCurrentUser().getId(), "Game saved"); // Log centralisé
     }
 
     public Set<Game> loadSavedGames() {

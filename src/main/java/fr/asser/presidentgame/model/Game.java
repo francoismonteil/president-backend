@@ -66,12 +66,30 @@ public class Game {
         ensureState(GameState.INITIALIZED, "Cannot distribute cards in the current state.");
         initializeDeck();
         distributeDeckToPlayers();
-        state = GameState.IN_PROGRESS;
+        state = GameState.DISTRIBUTING_CARDS;
+        redistributeCards();
     }
 
     public void endGame() {
         ensureState(GameState.IN_PROGRESS, "Game cannot be ended in the current state.");
         state = GameState.FINISHED;
+    }
+
+    public void resetForNewRound() {
+        // Remettre l'état du jeu à INITIALIZED pour une nouvelle manche
+        state = GameState.INITIALIZED;
+
+        // Réinitialiser les attributs de l'état du jeu
+        currentPlayerIndex = 0;
+        resetAfterPli();
+
+        // Remettre à zéro l'état de chaque joueur
+        for (Player player : players) {
+            player.resetForNewRound();
+        }
+
+        // Distribuer les cartes aux joueurs
+        distributeCards();
     }
 
     public void playCards(Long playerId, List<Card> cards, boolean suiteOption) {
@@ -135,7 +153,7 @@ public class Game {
     private void closePliWithCards(Player player, List<Card> cards) {
         processPlayerMove(player, cards); // Le joueur joue ses cartes
         playedCards.addAll(cards); // Ajouter les cartes au pli
-        resetAfterRound(); // Réinitialiser le pli
+        resetAfterPli(); // Réinitialiser le pli
         currentPlayerIndex = players.indexOf(player); // Le joueur qui ferme le pli prend le tour
     }
 
@@ -245,7 +263,7 @@ public class Game {
             if (winner != null) {
                 currentPlayerIndex = players.indexOf(winner); // Le vainqueur du pli prend le tour
             }
-            resetAfterRound();
+            resetAfterPli();
             currentPlayerIndex = getLastPlayerWhoPlayedIndex();
             return;
         }
@@ -294,7 +312,7 @@ public class Game {
 
         if(cards.stream().anyMatch(card -> reverseActive ? Objects.equals(card.getRank(), "3")
                                                          : Objects.equals(card.getRank(), "2"))) {
-            resetAfterRound();
+            resetAfterPli();
             return;
         }
         if (playedCards.size() >= 4 && Card.areSameRank(getLastPlayedCards(4))) {
@@ -302,7 +320,7 @@ public class Game {
             if (winner != null) {
                 currentPlayerIndex = players.indexOf(winner); // Le vainqueur du pli prend le tour
             }
-            resetAfterRound();
+            resetAfterPli();
             return;
         }
         checkOrNothingRule(cards);
@@ -328,7 +346,7 @@ public class Game {
         return winner;
     }
 
-    void resetAfterRound() {
+    void resetAfterPli() {
         clearPlayedCards();
         orNothingConditionActive = false;
         suiteActive = false;
@@ -495,6 +513,10 @@ public class Game {
     }
 
     void performCardRedistribution() {
+        if(ranks.isEmpty()) {
+            return;
+        }
+
         Player president = getPlayerByRank(1);
         Player vicePresident = getPlayerByRank(2);
         Player trouduc = getPlayerByRank(players.size());

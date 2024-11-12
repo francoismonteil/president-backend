@@ -315,7 +315,7 @@ class GameLogicTest {
     }
 
     @Test
-    void testResetAfterRound() {
+    void testResetAfterPli() {
         // Arrange
         Player player1 = new Player("Player1");
         player1.passTurn();
@@ -323,7 +323,7 @@ class GameLogicTest {
         game.getPlayedCards().add(new Card("Hearts", "8"));  // Simuler un pli en cours
 
         // Act
-        game.resetAfterRound();
+        game.resetAfterPli();
 
         // Assert
         assertTrue(game.getPlayedCards().isEmpty());  // Vérifier que les cartes jouées sont réinitialisées

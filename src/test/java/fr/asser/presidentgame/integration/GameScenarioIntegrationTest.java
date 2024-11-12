@@ -41,7 +41,7 @@ class GameScenarioIntegrationTest {
 
         List<String> playerNames = List.of("Player1", "Player2", "Player3", "Player4");
         game = gameService.createGame(playerNames);
-        gameService.saveGame(game.getId());
+        gameService.saveGame(game);
     }
 
     @Test
@@ -91,7 +91,7 @@ class GameScenarioIntegrationTest {
                 new Card("Hearts", "2")
         ));
         game.setState(GameState.IN_PROGRESS);
-        gameService.saveGame(game.getId());
+        gameService.saveGame(game);
 
         // S'assurer que chaque joueur a des cartes
         for (Player player : game.getPlayers()) {
@@ -205,11 +205,15 @@ class GameScenarioIntegrationTest {
         simulateTurn(1, List.of(new Card("Diamonds", "K")));
 
         // À la fin, tous les joueurs doivent avoir un rang :
+        assertEquals(GameState.FINISHED, game.getState());
         assertEquals(4, game.getRanks().size());  // Tous les joueurs ont un rang
         assertEquals(1, game.getRanks().get(game.getPlayers().get(2))); //Vice-Président
         assertEquals(2, game.getRanks().get(game.getPlayers().get(3))); //Président
         assertEquals(3, game.getRanks().get(game.getPlayers().get(1))); //Vice-trouduc
         assertEquals(4, game.getRanks().get(game.getPlayers().get(0))); //Trouduc
+
+        gameService.saveGame(game);
+        gameService.restartRound(game.getId());
     }
 
 
@@ -220,7 +224,7 @@ class GameScenarioIntegrationTest {
         } else {
             game.playCards(player.getId(), cards, suite);
         }
-        gameService.saveGame(game.getId());
+        gameService.saveGame(game);
     }
 
     private void simulateTurn(int playerIndex, List<Card> cards) {

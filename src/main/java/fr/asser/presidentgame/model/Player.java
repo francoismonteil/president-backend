@@ -16,7 +16,7 @@ public class Player {
 
     private String name;
 
-    @OneToMany(cascade = CascadeType.ALL, orphanRemoval = true)
+    @OneToMany(cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.EAGER)
     @JoinColumn(name = "player_id")
     private List<Card> hand = new ArrayList<>();
 
@@ -124,5 +124,11 @@ public class Player {
     public void resetForNewPli() {
         this.hasPassed = false;
         this.canPlayInCurrentPli = true;
+    }
+
+    public void resetForNewRound() {
+        this.hand.clear(); // Supprimer toutes les cartes de la main du joueur
+        this.playedCards.clear(); // Vider les cartes jouées pour la manche précédente
+        resetForNewPli();
     }
 }
