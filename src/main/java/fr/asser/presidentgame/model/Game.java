@@ -96,35 +96,63 @@ public class Game {
         ensureState(GameState.IN_PROGRESS, "Cannot play cards in the current game state.");
         Player currentPlayer = getPlayerById(playerId);
 
-        // Vérifier si le joueur joue en dehors de son tour pour terminer le pli
-        if (!isPlayerTurn(playerId) && canClosePliWithCards(currentPlayer, cards)) {
-            closePliWithCards(currentPlayer, cards); // Le joueur ferme le pli
-            return;
+        if (handlePliClosure(playerId, cards)) {
+            return; // Le pli est terminé, aucune autre action nécessaire.
         }
 
         currentPlayer = getCurrentPlayer(playerId);
-
         validatePlayConditions(cards);
-        handleSuiteOption(suiteOption, cards);
+        handleSuiteAndReverseOptions(suiteOption, cards);
+        updateGameStateAfterMove(currentPlayer, cards);
+    }
+
+    boolean handlePliClosure(Long playerId, List<Card> cards) {
+        Player currentPlayer = getPlayerById(playerId);
+        if (!isPlayerTurn(playerId) && canClosePliWithCards(currentPlayer, cards)) {
+            closePliWithCards(currentPlayer, cards);
+            return true; // Indique que le pli a été fermé.
+        }
+        return false;
+    }
+
+    void handleSuiteAndReverseOptions(boolean suiteOption, List<Card> cards) {
+        if (suiteOption) {
+            if (canTriggerSuite() && isConsecutiveToLastPlayed(cards.getFirst())) {
+                activateSuite(cards.getFirst());
+            } else if (canTriggerReverse() && isReverseToLastPlayed(cards.getFirst())) {
+                activateReverse(cards.getFirst());
+            }
+        }
+    }
+
+    void updateGameStateAfterMove(Player currentPlayer, List<Card> cards) {
         processPlayerMove(currentPlayer, cards);
 
         if (currentPlayer.getHand().isEmpty()) {
-            // Si la dernière carte est un 2, ce joueur devient automatiquement Trouduc
-            if (cards.size() == 1 && "2".equals(cards.getFirst().getRank())) {
-                ranks.put(currentPlayer, players.size());  // Assigner le rang de Trouduc
-            } else {
-                ranks.put(currentPlayer, ranks.size() + 1);  // Sinon, assigner un rang classique
-            }
-
-            // Vérifier si un seul joueur reste avec des cartes
-            var remainingPlayers = players.stream().filter(player -> !player.getHand().isEmpty()).toList();
-            if (remainingPlayers.size() == 1) {
-                ranks.put(remainingPlayers.getFirst(), ranks.size() + 1);
-                endGame();
-            }
+            handlePlayerFinished(currentPlayer, cards);
         }
 
         handlePostPlayLogic(cards);
+    }
+
+    void handlePlayerFinished(Player player, List<Card> lastPlayedCards) {
+        // Si la dernière carte est un 2, ce joueur devient automatiquement Trouduc
+        if (lastPlayedCards.size() == 1 && "2".equals(lastPlayedCards.getFirst().getRank())) {
+            ranks.put(player, players.size()); // Assigner le rang de Trouduc
+        } else {
+            ranks.put(player, ranks.size() + 1); // Sinon, assigner un rang classique
+        }
+
+        // Vérifier si un seul joueur reste avec des cartes
+        List<Player> remainingPlayers = players.stream()
+                .filter(p -> !p.getHand().isEmpty())
+                .toList();
+
+        if (remainingPlayers.size() == 1) {
+            // Le dernier joueur obtient automatiquement le rang suivant
+            ranks.put(remainingPlayers.getFirst(), ranks.size() + 1);
+            endGame();
+        }
     }
 
 
@@ -296,7 +324,7 @@ public class Game {
         }
     }
 
-    private void handlePostPlayLogic(List<Card> cards) {
+    void handlePostPlayLogic(List<Card> cards) {
         if (currentMoveSize == 0) {
             currentMoveSize = cards.size();
         } else {
