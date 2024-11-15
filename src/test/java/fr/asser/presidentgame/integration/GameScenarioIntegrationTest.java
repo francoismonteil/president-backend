@@ -213,7 +213,6 @@ class GameScenarioIntegrationTest {
         assertEquals(4, game.getRanks().get(game.getPlayers().get(0))); //Trouduc
 
         gameService.saveGame(game);
-        gameService.restartRound(game.getId());
     }
 
 
