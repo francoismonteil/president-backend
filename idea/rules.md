@@ -46,7 +46,7 @@
 ## 1. Introduction Générale
 
 ### 1.1 Présentation du Jeu
-Le Super Président est un jeu de cartes stratégique et compétitif conçu pour être joué en ligne via un navigateur web. Chaque joueur incarne un participant qui cherche à gravir les échelons sociaux du jeu en se débarrassant de toutes ses cartes le plus rapidement possible. Le jeu combine tactique, anticipation et une dose de chance, avec des règles spéciales telles que la suite, le reverse et la révolution qui ajoutent de la profondeur et du dynamisme à chaque partie.
+Le Super Président est un jeu de cartes stratégique et compétitif conçu pour être joué en ligne via un navigateur web. Chaque joueur incarne un participant qui cherche à gravir les échelons sociaux du jeu en se débarrassant de toutes ses cartes le plus rapidement possible. Le jeu combine tactique, anticipation et une part de chance. Des règles spéciales comme la suite, le reverse et la révolution enrichissent la stratégie et rendent chaque partie unique.
 
 ### 1.2 Objectif du Jeu
 L'objectif principal du Super Président est de devenir le Président en étant le premier à ne plus avoir de cartes en main. Les joueurs doivent poser stratégiquement leurs cartes pour surpasser les adversaires tout en tirant parti des règles spéciales pour influencer le cours de la partie.
@@ -203,7 +203,7 @@ Possibilité de choisir le niveau de difficulté des IA (facile, moyen, difficil
         - Si un joueur joue deux 8, le joueur suivant doit jouer deux 7.
 
 **Fin du Reverse :**
-- Le reverse reste actif jusqu'à la fin du pli.
+- L’effet du reverse s’applique uniquement au pli en cours et revient à l’ordre normal lors du suivant.
 - Si un joueur se retrouve le dernier à pouvoir jouer, il est libre de continuer le reverse ou de terminer le pli en cours.
 
 ### 4.3 Terminer un Pli en Dehors de son Tour
