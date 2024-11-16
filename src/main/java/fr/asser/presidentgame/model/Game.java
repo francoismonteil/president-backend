@@ -43,12 +43,12 @@ public class Game {
 
     private int turnPlayed = 0;
     private int currentPlayerIndex = 0;
-    private boolean orNothingConditionActive = false;
+    private boolean isForcedRankActive = false;
     private String currentRequiredRank = null;
     private boolean suiteActive = false;
-    private String currentSuiteRank = null;
+    private String activeSuiteRank = null;
     private boolean reverseActive = false;
-    private String currentReverseRank = null;
+    private String activeReverseRank = null;
     private int currentMoveSize = 0; // 0 indique qu'aucun mouvement n'a encore été fait
     private boolean revolutionActive = false;
 
@@ -92,7 +92,7 @@ public class Game {
         distributeCards();
     }
 
-    public void playCards(Long playerId, List<Card> cards, boolean suiteOption) {
+    public void playCards(Long playerId, List<Card> cards, boolean isSpecialRuleActivated) {
         ensureState(GameState.IN_PROGRESS, "Cannot play cards in the current game state.");
 
         if (checkPliClosure(playerId, cards)) {
@@ -100,22 +100,22 @@ public class Game {
         }
 
         Player currentPlayer = getCurrentPlayer(playerId);
-        validateAndExecuteMove(currentPlayer, cards, suiteOption);
+        validateAndExecuteMove(currentPlayer, cards, isSpecialRuleActivated);
     }
 
     private boolean checkPliClosure(Long playerId, List<Card> cards) {
         return handlePliClosure(playerId, cards);
     }
 
-    private void validateAndExecuteMove(Player currentPlayer, List<Card> cards, boolean suiteOption) {
-        validatePlayConditions(cards);
-        applySpecialRules(suiteOption, cards);
+    private void validateAndExecuteMove(Player currentPlayer, List<Card> cards, boolean isSpecialRuleActivated) {
+        checkPlayConditions(cards);
+        applySpecialRules(isSpecialRuleActivated, cards);
         updateGameStateAfterMove(currentPlayer, cards);
     }
 
-    private void applySpecialRules(boolean suiteOption, List<Card> cards) {
-        if (suiteOption) {
-            activateSpecialRule(cards.getFirst());
+    private void applySpecialRules(boolean isSpecialRuleActivated, List<Card> cards) {
+        if (isSpecialRuleActivated) {
+            determineAndApplySpecialRule(cards.getFirst());
         }
     }
 
@@ -128,7 +128,7 @@ public class Game {
         return false;
     }
 
-    private void activateSpecialRule(Card card) {
+    private void determineAndApplySpecialRule(Card card) {
         if (canTriggerSpecialRule() && isConsecutiveToLastPlayed(card)) {
             activateSuite(card);
         } else if (canTriggerSpecialRule() && isReverseToLastPlayed(card)) {
@@ -136,10 +136,10 @@ public class Game {
         }
     }
 
-    void handleSuiteAndReverseOptions(boolean suiteOption, List<Card> cards) {
-        if (suiteOption) {
+    void applySpecialRuleIfEligible(boolean isSpecialRuleActivated, List<Card> cards) {
+        if (isSpecialRuleActivated) {
             Card firstCard = cards.getFirst();
-            activateSpecialRule(firstCard);
+            determineAndApplySpecialRule(firstCard);
         }
     }
 
@@ -217,7 +217,7 @@ public class Game {
             throw new InvalidMoveException("You cannot pass if you can play.");
         }
 
-        handlePassLogic(currentPlayer);
+        processPassTurn(currentPlayer);
     }
 
     public void redistributeCards() {
@@ -251,15 +251,15 @@ public class Game {
         return currentPlayer;
     }
 
-    void validatePlayConditions(List<Card> cards) {
-        validateMoveConditions(cards);
+    void checkPlayConditions(List<Card> cards) {
+        checkMoveConditions(cards);
         if (!isValidMove(cards)) {
             throw new InvalidMoveException("Invalid move: " + cards);
         }
     }
 
-    private void validateMoveConditions(List<Card> cards) {
-        if (orNothingConditionActive && !cards.getFirst().getRank().equals(currentRequiredRank)) {
+    private void checkMoveConditions(List<Card> cards) {
+        if (isForcedRankActive && !cards.getFirst().getRank().equals(currentRequiredRank)) {
             throw new InvalidMoveException("You must play a card of rank " + currentRequiredRank + " or pass.");
         }
         if (suiteActive && !isValidSuiteMove(cards.getFirst())) {
@@ -275,15 +275,15 @@ public class Game {
         playedCards.addAll(cards);
     }
 
-    void handlePassLogic(Player currentPlayer) {
+    void processPassTurn(Player currentPlayer) {
         boolean alreadyPassed = currentPlayer.hasPassed();
 
         if (suiteActive || reverseActive) {
             currentPlayer.setCanPlayInCurrentPli(false);
         }
 
-        if (orNothingConditionActive && !alreadyPassed) {
-            orNothingConditionActive = false;
+        if (isForcedRankActive && !alreadyPassed) {
+            isForcedRankActive = false;
             currentRequiredRank = null;
         }
 
@@ -304,10 +304,10 @@ public class Game {
 
     void initializeDeck() {
         String[] suits = {"Hearts", "Diamonds", "Clubs", "Spades"};
-        String[] ranks = {"3", "4", "5", "6", "7", "8", "9", "10", "J", "Q", "K", "A", "2"};
+        String[] cardRanks = {"3", "4", "5", "6", "7", "8", "9", "10", "J", "Q", "K", "A", "2"};
         deck.clear();
         for (String suit : suits) {
-            for (String rank : ranks) {
+            for (String rank : cardRanks) {
                 deck.add(new Card(suit, rank));
             }
         }
@@ -379,12 +379,12 @@ public class Game {
 
     void resetAfterPli() {
         clearPlayedCards();
-        orNothingConditionActive = false;
+        isForcedRankActive = false;
         suiteActive = false;
         reverseActive = false;
         currentRequiredRank = null;
-        currentSuiteRank = null;
-        currentReverseRank = null;
+        activeSuiteRank = null;
+        activeReverseRank = null;
         currentMoveSize = 0;
         turnPlayed = 0;
         revolutionActive = false;
@@ -394,14 +394,14 @@ public class Game {
     void checkOrNothingRule(List<Card> cards) {
         if (cards.size() == 1) {
             if (playedCards.size() >= 2 && Card.areSameRank(getLastPlayedCards(2))) {
-                orNothingConditionActive = true;
-                currentRequiredRank = playedCards.get(playedCards.size() - 1).getRank();
+                isForcedRankActive = true;
+                currentRequiredRank = playedCards.getLast().getRank();
             } else {
-                orNothingConditionActive = false;
+                isForcedRankActive = false;
                 currentRequiredRank = null;
             }
         } else {
-            orNothingConditionActive = false;
+            isForcedRankActive = false;
             currentRequiredRank = null;
         }
     }
@@ -462,11 +462,11 @@ public class Game {
     }
 
     private boolean isValidSuiteMove(Card card) {
-        return validateSuiteOrReverse(card, currentSuiteRank, false);
+        return validateSuiteOrReverse(card, activeSuiteRank, false);
     }
 
     private boolean isValidReverseMove(Card card) {
-        return validateSuiteOrReverse(card, currentReverseRank, true);
+        return validateSuiteOrReverse(card, activeReverseRank, true);
     }
 
     private boolean isFollowingSuite(List<Card> cards) {
@@ -474,7 +474,7 @@ public class Game {
             return false;
         }
 
-        var compareRank = currentSuiteRank != null ? currentSuiteRank : getLastPlayedCard().getRank();
+        var compareRank = activeSuiteRank != null ? activeSuiteRank : getLastPlayedCard().getRank();
 
         // Vérifier que toutes les cartes ont le même rang (si une paire ou triple est en jeu)
         String firstCardRank = cards.getFirst().getRank();
@@ -494,7 +494,7 @@ public class Game {
             return false;
         }
 
-        var compareRank = currentReverseRank != null ? currentReverseRank : getLastPlayedCard().getRank();
+        var compareRank = activeReverseRank != null ? activeReverseRank : getLastPlayedCard().getRank();
 
         // Vérifier que toutes les cartes ont le même rang (si une paire ou triple est en jeu)
         String firstCardRank = cards.getFirst().getRank();
@@ -524,10 +524,10 @@ public class Game {
     private void activateRule(String rank, boolean isReverse) {
         if (isReverse) {
             reverseActive = true;
-            currentReverseRank = rank;
+            activeReverseRank = rank;
         } else {
             suiteActive = true;
-            currentSuiteRank = rank;
+            activeSuiteRank = rank;
         }
     }
 
@@ -615,7 +615,7 @@ public class Game {
         // Vérification des règles spéciales (Suite, Ou Rien)
         for (List<Card> combination : possibleCombinations) {
             // Règle "Ou rien"
-            if (orNothingConditionActive) {
+            if (isForcedRankActive) {
                 if (combination.getFirst().getRank().equals(currentRequiredRank)) {
                     playableCards.add(combination);  // Le joueur doit jouer une carte de ce rang ou passer
                 }
@@ -773,12 +773,12 @@ public class Game {
         isSaved = saved;
     }
 
-    public boolean isOrNothingConditionActive() {
-        return orNothingConditionActive;
+    public boolean getIsForcedRankActive() {
+        return isForcedRankActive;
     }
 
-    public void setOrNothingConditionActive(boolean orNothingConditionActive) {
-        this.orNothingConditionActive = orNothingConditionActive;
+    public void setIsForcedRankActive(boolean isForcedRankActive) {
+        this.isForcedRankActive = isForcedRankActive;
     }
 
     public String getCurrentRequiredRank() {
@@ -805,12 +805,12 @@ public class Game {
         this.suiteActive = suiteActive;
     }
 
-    public String getCurrentSuiteRank() {
-        return currentSuiteRank;
+    public String getActiveSuiteRank() {
+        return activeSuiteRank;
     }
 
-    public void setCurrentSuiteRank(String currentSuiteRank) {
-        this.currentSuiteRank = currentSuiteRank;
+    public void setActiveSuiteRank(String activeSuiteRank) {
+        this.activeSuiteRank = activeSuiteRank;
     }
 
     public int getCurrentMoveSize() {
@@ -837,11 +837,11 @@ public class Game {
         this.reverseActive = reverseActive;
     }
 
-    public String getCurrentReverseRank() {
-        return currentReverseRank;
+    public String getActiveReverseRank() {
+        return activeReverseRank;
     }
 
-    public void setCurrentReverseRank(String currentReverseRank) {
-        this.currentReverseRank = currentReverseRank;
+    public void setActiveReverseRank(String activeReverseRank) {
+        this.activeReverseRank = activeReverseRank;
     }
 }

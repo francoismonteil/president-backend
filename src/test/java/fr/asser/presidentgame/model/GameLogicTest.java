@@ -205,31 +205,31 @@ class GameLogicTest {
     }
 
     @Test
-    void testValidatePlayConditions_InvalidOuRienCondition() {
+    void testCheckPlayConditions_InvalidOuRienCondition() {
         // Arrange
-        game.setOrNothingConditionActive(true);
+        game.setIsForcedRankActive(true);
         game.setCurrentRequiredRank("7");
 
         List<Card> cardsToPlay = List.of(new Card("Hearts", "6"));  // Carte qui ne respecte pas "Ou Rien"
 
         // Act & Assert
         InvalidMoveException exception = assertThrows(InvalidMoveException.class, () -> {
-            game.validatePlayConditions(cardsToPlay);
+            game.checkPlayConditions(cardsToPlay);
         });
         assertEquals("You must play a card of rank 7 or pass.", exception.getMessage());
     }
 
     @Test
-    void testValidatePlayConditions_InvalidSuiteCondition() {
+    void testCheckPlayConditions_InvalidSuiteCondition() {
         // Arrange
         game.setSuiteActive(true);
-        game.setCurrentSuiteRank("8");
+        game.setActiveSuiteRank("8");
 
         List<Card> cardsToPlay = List.of(new Card("Hearts", "7"));  // Carte qui ne suit pas la suite
 
         // Act & Assert
         InvalidMoveException exception = assertThrows(InvalidMoveException.class, () -> {
-            game.validatePlayConditions(cardsToPlay);
+            game.checkPlayConditions(cardsToPlay);
         });
         assertEquals("You must follow the suite or pass.", exception.getMessage());
     }
@@ -304,7 +304,7 @@ class GameLogicTest {
         game.checkOrNothingRule(List.of(new Card("Spades", "7")));
 
         // Assert
-        assertTrue(game.isOrNothingConditionActive());
+        assertTrue(game.getIsForcedRankActive());
         assertEquals("7", game.getCurrentRequiredRank());
     }
 
@@ -318,7 +318,7 @@ class GameLogicTest {
         game.checkOrNothingRule(List.of(new Card("Spades", "9")));
 
         // Assert
-        assertFalse(game.isOrNothingConditionActive());
+        assertFalse(game.getIsForcedRankActive());
     }
 
     @Test
@@ -429,7 +429,7 @@ class GameLogicTest {
 
         // Assert
         assertTrue(game.isSuiteActive());
-        assertEquals("5", game.getCurrentSuiteRank());
+        assertEquals("5", game.getActiveSuiteRank());
         assertEquals(1, player.getHand().size()); // Le joueur a joué une carte
     }
 
@@ -567,11 +567,11 @@ class GameLogicTest {
         List<Card> cardsToPlay = List.of(new Card("Hearts", "8")); // Carte qui suit la suite
 
         // Act
-        game.handleSuiteAndReverseOptions(true, cardsToPlay);
+        game.applySpecialRuleIfEligible(true, cardsToPlay);
 
         // Assert
         assertTrue(game.isSuiteActive());
-        assertEquals("8", game.getCurrentSuiteRank());
+        assertEquals("8", game.getActiveSuiteRank());
         assertFalse(game.isReverseActive());
     }
 
@@ -585,11 +585,11 @@ class GameLogicTest {
         List<Card> cardsToPlay = List.of(new Card("Hearts", "8")); // Carte qui active le reverse
 
         // Act
-        game.handleSuiteAndReverseOptions(true, cardsToPlay);
+        game.applySpecialRuleIfEligible(true, cardsToPlay);
 
         // Assert
         assertTrue(game.isReverseActive());
-        assertEquals("8", game.getCurrentReverseRank());
+        assertEquals("8", game.getActiveReverseRank());
         assertFalse(game.isSuiteActive());
     }
 
@@ -603,17 +603,17 @@ class GameLogicTest {
         List<Card> cardsToPlay = List.of(new Card("Hearts", "8"));
 
         // Act
-        game.handleSuiteAndReverseOptions(false, cardsToPlay);
+        game.applySpecialRuleIfEligible(false, cardsToPlay);
 
         // Assert
         assertFalse(game.isSuiteActive());
         assertFalse(game.isReverseActive());
-        assertNull(game.getCurrentSuiteRank());
-        assertNull(game.getCurrentReverseRank());
+        assertNull(game.getActiveSuiteRank());
+        assertNull(game.getActiveReverseRank());
     }
 
     @Test
-    void testHandleSuiteAndReverseOptions_NoValidTrigger_NoChange() {
+    void testApplySpecialRuleIfEligible_NoValidTrigger_NoChange() {
         // Arrange
         game.getPlayedCards().add(new Card("Hearts", "7")); // Dernière carte jouée
         game.setTurnPlayed(1); // Première manche
@@ -623,17 +623,17 @@ class GameLogicTest {
         List<Card> cardsToPlay = List.of(new Card("Diamonds", "9")); // Carte qui ne déclenche rien
 
         // Act
-        game.handleSuiteAndReverseOptions(true, cardsToPlay);
+        game.applySpecialRuleIfEligible(true, cardsToPlay);
 
         // Assert
         assertFalse(game.isSuiteActive());
         assertFalse(game.isReverseActive());
-        assertNull(game.getCurrentSuiteRank());
-        assertNull(game.getCurrentReverseRank());
+        assertNull(game.getActiveSuiteRank());
+        assertNull(game.getActiveReverseRank());
     }
 
     @Test
-    void testHandleSuiteAndReverseOptions_BothTriggers_NoChange() {
+    void testApplySpecialRuleIfEligible_BothTriggers_NoChange() {
         // Arrange
         game.getPlayedCards().addAll(List.of(new Card("Hearts", "7"), new Card("Hearts", "8"))); // Cartes jouées
         game.setTurnPlayed(1); // Première manche
@@ -643,7 +643,7 @@ class GameLogicTest {
         List<Card> cardsToPlay = List.of(new Card("Hearts", "6")); // Carte qui pourrait activer les deux (mais conflit)
 
         // Act
-        game.handleSuiteAndReverseOptions(true, cardsToPlay);
+        game.applySpecialRuleIfEligible(true, cardsToPlay);
 
         // Assert
         assertFalse(game.isSuiteActive());
