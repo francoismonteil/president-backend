@@ -521,14 +521,22 @@ public class Game {
         return !playedCards.isEmpty() && playedCards.size() <= 3 && turnPlayed == 1;
     }
 
+    private void activateRule(String rank, boolean isReverse) {
+        if (isReverse) {
+            reverseActive = true;
+            currentReverseRank = rank;
+        } else {
+            suiteActive = true;
+            currentSuiteRank = rank;
+        }
+    }
+
     private void activateSuite(Card card) {
-        suiteActive = true;
-        currentSuiteRank = card.getRank();
+        activateRule(card.getRank(), false);
     }
 
     private void activateReverse(Card card) {
-        reverseActive = true;
-        currentReverseRank = card.getRank();
+        activateRule(card.getRank(), true);
     }
 
     private void clearPlayedCards() {
