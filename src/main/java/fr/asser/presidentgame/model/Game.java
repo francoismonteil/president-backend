@@ -131,11 +131,17 @@ public class Game {
 
     void updateGameStateAfterMove(Player currentPlayer, List<Card> cards) {
         processPlayerMove(currentPlayer, cards);
+        handlePlayerIfFinished(currentPlayer, cards);
+        applyPostMoveLogic(cards);
+    }
 
+    private void handlePlayerIfFinished(Player currentPlayer, List<Card> cards) {
         if (currentPlayer.getHand().isEmpty()) {
             handlePlayerFinished(currentPlayer, cards);
         }
+    }
 
+    private void applyPostMoveLogic(List<Card> cards) {
         handlePostPlayLogic(cards);
     }
 
