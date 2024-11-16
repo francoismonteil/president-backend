@@ -129,9 +129,9 @@ public class Game {
     }
 
     private void activateSpecialRule(Card card) {
-        if (canTriggerSuite() && isConsecutiveToLastPlayed(card)) {
+        if (canTriggerSpecialRule() && isConsecutiveToLastPlayed(card)) {
             activateSuite(card);
-        } else if (canTriggerReverse() && isReverseToLastPlayed(card)) {
+        } else if (canTriggerSpecialRule() && isReverseToLastPlayed(card)) {
             activateReverse(card);
         }
     }
@@ -517,11 +517,7 @@ public class Game {
         return Card.compareRank(card, getLastPlayedCard()) == -1;
     }
 
-    private boolean canTriggerSuite() {
-        return !playedCards.isEmpty() && playedCards.size() <= 3 && turnPlayed == 1;
-    }
-
-    private boolean canTriggerReverse() {
+    private boolean canTriggerSpecialRule() {
         return !playedCards.isEmpty() && playedCards.size() <= 3 && turnPlayed == 1;
     }
 
