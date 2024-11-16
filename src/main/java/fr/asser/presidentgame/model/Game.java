@@ -125,7 +125,8 @@ public class Game {
 
     void handleSuiteAndReverseOptions(boolean suiteOption, List<Card> cards) {
         if (suiteOption) {
-            activateSpecialRule(cards.getFirst());
+            Card firstCard = cards.getFirst();
+            activateSpecialRule(firstCard);
         }
     }
 
