@@ -115,13 +115,17 @@ public class Game {
         return false;
     }
 
+    private void activateSpecialRule(Card card) {
+        if (canTriggerSuite() && isConsecutiveToLastPlayed(card)) {
+            activateSuite(card);
+        } else if (canTriggerReverse() && isReverseToLastPlayed(card)) {
+            activateReverse(card);
+        }
+    }
+
     void handleSuiteAndReverseOptions(boolean suiteOption, List<Card> cards) {
         if (suiteOption) {
-            if (canTriggerSuite() && isConsecutiveToLastPlayed(cards.getFirst())) {
-                activateSuite(cards.getFirst());
-            } else if (canTriggerReverse() && isReverseToLastPlayed(cards.getFirst())) {
-                activateReverse(cards.getFirst());
-            }
+            activateSpecialRule(cards.getFirst());
         }
     }
 
@@ -238,26 +242,23 @@ public class Game {
     }
 
     void validatePlayConditions(List<Card> cards) {
-        // Règle "Ou rien"
-        if (orNothingConditionActive && !cards.isEmpty() && !cards.get(0).getRank().equals(currentRequiredRank)) {
-            throw new InvalidMoveException("You must play a card of rank " + currentRequiredRank + " or pass.");
-        }
-
-        // Règle "Suite" active
-        if (suiteActive && !cards.isEmpty() && !isFollowingSuite(cards.get(0))) {
-            throw new InvalidMoveException("You must follow the suite or pass.");
-        }
-
-        // Règle "Reverse" active
-        if (reverseActive && !cards.isEmpty() && !isFollowingReverse(cards.get(0))) {
-            throw new InvalidMoveException("You must play a card lower than the current rank or pass.");
-        }
-
+        validateMoveConditions(cards);
         if (!isValidMove(cards)) {
             throw new InvalidMoveException("Invalid move: " + cards);
         }
     }
 
+    private void validateMoveConditions(List<Card> cards) {
+        if (orNothingConditionActive && !cards.getFirst().getRank().equals(currentRequiredRank)) {
+            throw new InvalidMoveException("You must play a card of rank " + currentRequiredRank + " or pass.");
+        }
+        if (suiteActive && !isValidSuiteMove(cards.getFirst())) {
+            throw new InvalidMoveException("You must follow the suite or pass.");
+        }
+        if (reverseActive && !isValidReverseMove(cards.getFirst())) {
+            throw new InvalidMoveException("You must play a card lower than the current rank or pass.");
+        }
+    }
 
     private void processPlayerMove(Player currentPlayer, List<Card> cards) {
         cards.forEach(currentPlayer::playCard);
@@ -453,11 +454,25 @@ public class Game {
     }
 
     private boolean isFollowingSuite(Card card) {
-        return Card.compareRank(card, new Card(card.getSuit(), currentSuiteRank)) == 1;
+        return isValidSuiteMove(card);
     }
 
     private boolean isFollowingReverse(Card card) {
-        return Card.compareRank(card, new Card(card.getSuit(), currentReverseRank)) == -1;
+        return isValidReverseMove(card);
+    }
+
+    private boolean validateSuiteOrReverse(Card card, String activeRank, boolean isReverse) {
+        if (activeRank == null) return false;
+        int comparison = Card.compareRank(card, new Card(card.getSuit(), activeRank));
+        return isReverse ? comparison == -1 : comparison == 1;
+    }
+
+    private boolean isValidSuiteMove(Card card) {
+        return validateSuiteOrReverse(card, currentSuiteRank, false);
+    }
+
+    private boolean isValidReverseMove(Card card) {
+        return validateSuiteOrReverse(card, currentReverseRank, true);
     }
 
     private boolean isFollowingSuite(List<Card> cards) {

@@ -104,7 +104,6 @@ class GameScenarioIntegrationTest {
 
         // Premier pli :
         simulateTurn(0, List.of(new Card("Clubs", "6"), new Card("Hearts", "6")));
-        game.getPlayableCardsForPlayer(game.getPlayers().get(1));
         simulateTurn(1, List.of(new Card("Hearts", "10"), new Card("Spades", "10")));
         simulateTurn(2, List.of(new Card("Clubs", "K"), new Card("Hearts", "K")));
         simulateTurn(3, List.of(new Card("Clubs", "A"), new Card("Hearts", "A")));
