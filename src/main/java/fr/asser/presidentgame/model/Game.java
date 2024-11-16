@@ -108,7 +108,7 @@ public class Game {
 
     boolean handlePliClosure(Long playerId, List<Card> cards) {
         Player currentPlayer = getPlayerById(playerId);
-        if (!isPlayerTurn(playerId) && canClosePliWithCards(currentPlayer, cards)) {
+        if (!isPlayerTurn(playerId) && canClosePliWithCards(cards)) {
             closePliWithCards(currentPlayer, cards);
             return true; // Indique que le pli a été fermé.
         }
@@ -160,7 +160,7 @@ public class Game {
     }
 
 
-    private boolean canClosePliWithCards(Player player, List<Card> cards) {
+    private boolean canClosePliWithCards(List<Card> cards) {
         // Ne pas permettre de fermer avec un 2
         if (cards.stream().anyMatch(card -> card.getRank().equals("2"))) {
             return false;
@@ -203,16 +203,6 @@ public class Game {
     public void redistributeCards() {
         ensureState(GameState.DISTRIBUTING_CARDS, "Cannot redistribute cards in the current game state.");
         performCardRedistribution();
-    }
-
-    public void calculateRanks() {
-        int rank = 1;  // Commence à 1 pour le Président
-        for (Player player : players) {
-            if (player.getHand().isEmpty()) {
-                ranks.put(player, rank);  // Assigner un rang au joueur
-                rank++;
-            }
-        }
     }
 
     // Méthodes utilitaires privées
@@ -263,14 +253,6 @@ public class Game {
     private void processPlayerMove(Player currentPlayer, List<Card> cards) {
         cards.forEach(currentPlayer::playCard);
         playedCards.addAll(cards);
-    }
-
-    void handleSuiteOption(boolean suiteOption, List<Card> cards) {
-        if (suiteOption && canTriggerSuite() && isConsecutiveToLastPlayed(cards.getFirst())) {
-            activateSuite(cards.getFirst());
-        } else if (suiteOption && canTriggerReverse() && isReverseToLastPlayed(cards.getFirst())) {
-            activateReverse(cards.getFirst());
-        }
     }
 
     void handlePassLogic(Player currentPlayer) {
@@ -451,14 +433,6 @@ public class Game {
 
     private Card getLastPlayedCard() {
         return playedCards.getLast();
-    }
-
-    private boolean isFollowingSuite(Card card) {
-        return isValidSuiteMove(card);
-    }
-
-    private boolean isFollowingReverse(Card card) {
-        return isValidReverseMove(card);
     }
 
     private boolean validateSuiteOrReverse(Card card, String activeRank, boolean isReverse) {
@@ -696,7 +670,6 @@ public class Game {
             currentSubset.removeLast(); // Retirer la dernière carte pour explorer d'autres combinaisons
         }
     }
-
 
     // Getters et setters
     public Long getId() {

@@ -84,30 +84,6 @@ class GameLogicTest {
     }
 
     @Test
-    void testUpdateRanks() {
-        // Arrange
-        Player player1 = new Player("Player1");
-        player1.setHand(Collections.emptyList());  // Joueur 1 n'a plus de cartes
-        Player player2 = new Player("Player2");
-        player2.setHand(List.of(new Card("Spades", "5")));  // Joueur 2 a encore des cartes
-        Player player3 = new Player("Player3");
-        player3.setHand(Collections.emptyList());  // Joueur 3 n'a plus de cartes
-
-        game.getPlayers().add(player1);
-        game.getPlayers().add(player2);
-        game.getPlayers().add(player3);
-
-        // Act
-        game.calculateRanks();
-
-        // Assert
-        assertNotNull(game.getRanks());  // S'assurer que ranks n'est pas null
-        assertEquals(1, game.getRanks().get(player1));  // Joueur 1 est Président
-        assertEquals(2, game.getRanks().get(player3));  // Joueur 3 est Vice-Président
-        assertNull(game.getRanks().get(player2));  // Joueur 2 n'a pas encore de rang
-    }
-
-    @Test
     void testDistributeCards_EmptyDeck() {
         game.setState(GameState.INITIALIZED);
         game.getDeck().clear();  // Assure que le deck est vide
@@ -256,23 +232,6 @@ class GameLogicTest {
             game.validatePlayConditions(cardsToPlay);
         });
         assertEquals("You must follow the suite or pass.", exception.getMessage());
-    }
-
-    @Test
-    void testHandleSuiteOption_ActivateSuite() {
-        // Arrange
-        List<Card> lastPlayed = List.of(new Card("Hearts", "7"));
-        game.getPlayedCards().addAll(lastPlayed);
-        game.setTurnPlayed(1);
-
-        List<Card> cardsToPlay = List.of(new Card("Hearts", "8"));  // Carte qui suit la suite
-
-        // Act
-        game.handleSuiteOption(true, cardsToPlay);
-
-        // Assert
-        assertTrue(game.isSuiteActive());
-        assertEquals("8", game.getCurrentSuiteRank());
     }
 
     @Test
