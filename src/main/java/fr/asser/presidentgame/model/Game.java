@@ -94,16 +94,29 @@ public class Game {
 
     public void playCards(Long playerId, List<Card> cards, boolean suiteOption) {
         ensureState(GameState.IN_PROGRESS, "Cannot play cards in the current game state.");
-        Player currentPlayer = getPlayerById(playerId);
 
-        if (handlePliClosure(playerId, cards)) {
+        if (checkPliClosure(playerId, cards)) {
             return; // Le pli est terminé, aucune autre action nécessaire.
         }
 
-        currentPlayer = getCurrentPlayer(playerId);
+        Player currentPlayer = getCurrentPlayer(playerId);
+        validateAndExecuteMove(currentPlayer, cards, suiteOption);
+    }
+
+    private boolean checkPliClosure(Long playerId, List<Card> cards) {
+        return handlePliClosure(playerId, cards);
+    }
+
+    private void validateAndExecuteMove(Player currentPlayer, List<Card> cards, boolean suiteOption) {
         validatePlayConditions(cards);
-        handleSuiteAndReverseOptions(suiteOption, cards);
+        applySpecialRules(suiteOption, cards);
         updateGameStateAfterMove(currentPlayer, cards);
+    }
+
+    private void applySpecialRules(boolean suiteOption, List<Card> cards) {
+        if (suiteOption) {
+            activateSpecialRule(cards.getFirst());
+        }
     }
 
     boolean handlePliClosure(Long playerId, List<Card> cards) {
