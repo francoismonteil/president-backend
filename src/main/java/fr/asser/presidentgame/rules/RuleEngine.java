@@ -22,7 +22,7 @@ public class RuleEngine {
     private int currentMoveSize = 0;
     private int turnPlayed = 0;
 
-    public RuleEngine() { /* TODO document why this constructor is empty */ }
+    public RuleEngine() { /* Constructeur vide */ }
 
     // Méthodes pour activer ou désactiver les règles
     public void applySpecialRule(Card card, Card lastPlayedCard, int turnPlayed) {
@@ -67,15 +67,21 @@ public class RuleEngine {
         return currentRequiredRank;
     }
 
-    // Vérifications spécifiques aux règles
+    public int compareRank(Card card1, Card card2) {
+        int result = Card.compareRank(card1, card2);
+        return revolutionActive ? -result : result;
+    }
+
     private boolean isValidSuiteMove(Card card) {
         if (!suiteActive || activeSuiteRank == null) return false;
-        return Card.compareRank(card, new Card(card.getSuit(), activeSuiteRank)) == 1;
+        Card suiteCard = new Card(card.getSuit(), activeSuiteRank);
+        return compareRank(card, suiteCard) > 0; // Utilise compareRank
     }
 
     private boolean isValidReverseMove(Card card) {
         if (!reverseActive || activeReverseRank == null) return false;
-        return Card.compareRank(card, new Card(card.getSuit(), activeReverseRank)) == -1;
+        Card reverseCard = new Card(card.getSuit(), activeReverseRank);
+        return compareRank(card, reverseCard) < 0;
     }
 
     private boolean isValidForcedRankMove(Card card) {

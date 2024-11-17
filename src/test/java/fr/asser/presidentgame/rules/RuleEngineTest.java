@@ -149,4 +149,25 @@ class RuleEngineTest {
 
         assertEquals(1, ruleEngine.getTurnPlayed());
     }
+
+    @Test
+    void testCompareRankWithoutRevolution() {
+        RuleEngine engine = new RuleEngine();
+        engine.resetRules(); // Pas de révolution
+        Card card1 = new Card("Hearts", "5");
+        Card card2 = new Card("Spades", "7");
+
+        assertTrue(engine.compareRank(card1, card2) < 0); // Ordre naturel
+    }
+
+    @Test
+    void testCompareRankWithRevolution() {
+        RuleEngine engine = new RuleEngine();
+        engine.triggerRevolution(); // Révolution activée
+        Card card1 = new Card("Hearts", "5");
+        Card card2 = new Card("Spades", "7");
+
+        assertTrue(engine.compareRank(card1, card2) > 0); // Ordre inversé
+    }
+
 }
