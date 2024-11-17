@@ -21,6 +21,10 @@ public class Card {
     @Schema(description = "Rank of the card", example = "A")
     private String rank;
 
+    private static final List<String> RANK_ORDER = Arrays.asList(
+            "3", "4", "5", "6", "7", "8", "9", "10", "J", "Q", "K", "A", "2"
+    );
+
     public Card() {}
 
     public Card(String suit, String rank) {
@@ -41,32 +45,25 @@ public class Card {
     }
 
     public static int compareRank(Card card1, Card card2) {
-        List<String> ranks = Arrays.asList("3", "4", "5", "6", "7", "8", "9", "10", "J", "Q", "K", "A", "2");
-        return ranks.indexOf(card1.getRank()) - ranks.indexOf(card2.getRank());
+        return RANK_ORDER.indexOf(card1.getRank()) - RANK_ORDER.indexOf(card2.getRank());
     }
 
-    public static int compareRank(Card card1, Card card2, boolean revolutionActive) {
-        List<String> ranks = Arrays.asList("3", "4", "5", "6", "7", "8", "9", "10", "J", "Q", "K", "A", "2");
-
-        if (revolutionActive) {
-            // Si la Révolution est active, inverser l'ordre des rangs
-            Collections.reverse(ranks);
+    public static List<Card> sortHand(List<Card> hand) {
+        if (hand != null) {
+            hand.sort(Comparator.comparingInt(
+                    card -> RANK_ORDER.indexOf(card.getRank())
+            ));
         }
 
-        int rank1 = ranks.indexOf(card1.getRank());
-        int rank2 = ranks.indexOf(card2.getRank());
-
-        return Integer.compare(rank1, rank2);
+        return hand;
     }
-
 
     public static boolean areSameRank(List<Card> cards) {
         return cards.stream().map(Card::getRank).distinct().count() == 1;
     }
 
     public static boolean isSequence(List<Card> cards) {
-        List<String> ranks = Arrays.asList("3", "4", "5", "6", "7", "8", "9", "10", "J", "Q", "K", "A", "2");
-        List<Integer> indices = cards.stream().map(card -> ranks.indexOf(card.getRank())).sorted().toList();
+        List<Integer> indices = cards.stream().map(card -> RANK_ORDER.indexOf(card.getRank())).sorted().toList();
         for (int i = 1; i < indices.size(); i++) {
             if (indices.get(i) != indices.get(i - 1) + 1) {
                 return false;

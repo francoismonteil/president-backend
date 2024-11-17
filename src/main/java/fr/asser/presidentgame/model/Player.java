@@ -107,6 +107,10 @@ public class Player {
                 .collect(Collectors.toList());
     }
 
+    public void sortHand() {
+        hand = Card.sortHand(hand);
+    }
+
     public void setGame(Game game) {
         this.game = game;
     }
