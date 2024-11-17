@@ -91,11 +91,13 @@ public class RuleEngine {
     // Une suite peut être activée uniquement si le tour est le premier (turnPlayed == 1)
     // et que la carte jouée est immédiatement consécutive à la dernière carte jouée.
     private boolean canActivateSuite(Card card, Card lastPlayedCard, int turnPlayed) {
-        return !suiteActive && turnPlayed == 1 && Card.compareRank(card, lastPlayedCard) == 1;
+        return !suiteActive && turnPlayed == 1 && !revolutionActive && Card.compareRank(card, lastPlayedCard) == 1
+                || !suiteActive && turnPlayed == 1 && revolutionActive && Card.compareRank(card, lastPlayedCard) == -1;
     }
 
     private boolean canActivateReverse(Card card, Card lastPlayedCard, int turnPlayed) {
-        return !reverseActive && turnPlayed == 1 && Card.compareRank(card, lastPlayedCard) == -1;
+        return !reverseActive && turnPlayed == 1 && !revolutionActive && Card.compareRank(card, lastPlayedCard) == -1
+                || !reverseActive && turnPlayed == 1 && revolutionActive && Card.compareRank(card, lastPlayedCard) == 1;
     }
 
     // Activation des règles
@@ -127,6 +129,16 @@ public class RuleEngine {
         revolutionActive = false;
     }
 
+    public String getBestCard() {
+        if (revolutionActive && reverseActive) {
+            return Card.RANK_ORDER.getLast();
+        } else if(revolutionActive || reverseActive) {
+            return Card.RANK_ORDER.getFirst();
+        } else {
+            return Card.RANK_ORDER.getLast();
+        }
+    }
+
     public void resetCurrentMoveSize() {
         this.currentMoveSize = 0;
     }
@@ -152,9 +164,6 @@ public class RuleEngine {
     }
 
     public String getActiveSuiteRank() {
-        if (!suiteActive) {
-            throw new IllegalStateException("Suite is not active.");
-        }
         return activeSuiteRank;
     }
 

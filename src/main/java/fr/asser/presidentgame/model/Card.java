@@ -21,7 +21,7 @@ public class Card {
     @Schema(description = "Rank of the card", example = "A")
     private String rank;
 
-    private static final List<String> RANK_ORDER = Arrays.asList(
+    public static final List<String> RANK_ORDER = Arrays.asList(
             "3", "4", "5", "6", "7", "8", "9", "10", "J", "Q", "K", "A", "2"
     );
 

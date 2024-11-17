@@ -91,6 +91,9 @@ public class Game {
 
         // Distribuer les cartes aux joueurs
         distributeCards();
+
+        // Remettre à zéro les rangs des joueurs
+        ranks.clear();
     }
 
     public void playCards(Long playerId, List<Card> cards, boolean isSpecialRuleActivated) {
@@ -129,17 +132,6 @@ public class Game {
         return false;
     }
 
-    private void determineAndApplySpecialRule(Card card) {
-        ruleEngine.applySpecialRule(card, getLastPlayedCard(), ruleEngine.getTurnPlayed());
-    }
-
-    void applySpecialRuleIfEligible(boolean isSpecialRuleActivated, List<Card> cards) {
-        if (isSpecialRuleActivated) {
-            Card firstCard = cards.getFirst();
-            determineAndApplySpecialRule(firstCard);
-        }
-    }
-
     void updateGameStateAfterMove(Player currentPlayer, List<Card> cards) {
         processPlayerMove(currentPlayer, cards);
         handlePlayerIfFinished(currentPlayer, cards);
@@ -158,7 +150,7 @@ public class Game {
 
     void handlePlayerFinished(Player player, List<Card> lastPlayedCards) {
         // Si la dernière carte est un 2, ce joueur devient automatiquement Trouduc
-        if (lastPlayedCards.size() == 1 && "2".equals(lastPlayedCards.getFirst().getRank())) {
+        if (lastPlayedCards.size() == 1 && ruleEngine.getBestCard().equals(lastPlayedCards.getFirst().getRank())) {
             ranks.put(player, players.size()); // Assigner le rang de Trouduc
         } else {
             ranks.put(player, ranks.size() + 1); // Sinon, assigner un rang classique
@@ -176,10 +168,9 @@ public class Game {
         }
     }
 
-
     private boolean canClosePliWithCards(List<Card> cards) {
         // Ne pas permettre de fermer avec un 2
-        if (cards.stream().anyMatch(card -> card.getRank().equals("2"))) {
+        if (cards.stream().anyMatch(card -> card.getRank().equals(ruleEngine.getBestCard()))) {
             return false;
         }
 
@@ -281,12 +272,13 @@ public class Game {
             currentPlayer.setCanPlayInCurrentPli(false);
         }
 
+        currentPlayer.passTurn();
+
         if (ruleEngine.isForcedRankActive() && !alreadyPassed) {
             ruleEngine.setForcedRankActive(false);
             ruleEngine.setActiveReverseRank(null);
+            currentPlayer.resetPassed();
         }
-
-        currentPlayer.passTurn();
 
         if (allPlayersHavePassed()) {
             Player winner = determinePliWinner(this.playedCards);
@@ -297,16 +289,19 @@ public class Game {
             currentPlayerIndex = getLastPlayerWhoPlayedIndex();
             return;
         }
-        ruleEngine.incrementTurnPlayed();
+
+        if(!currentPlayer.getHand().isEmpty()) {
+            ruleEngine.incrementTurnPlayed();
+        }
+
         currentPlayerIndex = (currentPlayerIndex + 1) % players.size();
     }
 
     void initializeDeck() {
         String[] suits = {"Hearts", "Diamonds", "Clubs", "Spades"};
-        String[] cardRanks = {"3", "4", "5", "6", "7", "8", "9", "10", "J", "Q", "K", "A", "2"};
         deck.clear();
         for (String suit : suits) {
-            for (String rank : cardRanks) {
+            for (String rank : Card.RANK_ORDER) {
                 deck.add(new Card(suit, rank));
             }
         }
@@ -341,8 +336,7 @@ public class Game {
             return;
         }
 
-        if(cards.stream().anyMatch(card -> ruleEngine.isReverseActive() ? Objects.equals(card.getRank(), "3")
-                                                                        : Objects.equals(card.getRank(), "2"))) {
+        if(cards.stream().anyMatch(card -> card.getRank().equals(ruleEngine.getBestCard()))) {
             resetAfterPli();
             return;
         }
@@ -428,11 +422,13 @@ public class Game {
     }
 
     private boolean isSingleCardMoveValid(List<Card> cards) {
-        return Card.compareRank(cards.getFirst(), getLastPlayedCard()) >= 0;
+        var gap = Card.compareRank(cards.getFirst(), getLastPlayedCard());
+        return ruleEngine.isRevolutionActive() ? gap <= 0 || gap == 1 : gap >= 0 || gap == -1;
     }
 
     private boolean isSameRankMove(List<Card> cards) {
-        return Card.compareRank(cards.getFirst(), getLastPlayedCards(cards.size()).getFirst()) >= 0;
+        var gap = Card.compareRank(cards.getFirst(), getLastPlayedCards(cards.size()).getFirst());
+        return ruleEngine.isRevolutionActive() ? gap <= 0 || gap == 1 : gap >= 0 || gap == -1;
     }
 
     private boolean isSequenceMove(List<Card> cards) {
@@ -489,32 +485,6 @@ public class Game {
 
     boolean isConsecutiveToLastPlayed(Card card) {
         return Card.compareRank(card, getLastPlayedCard()) == 1;
-    }
-
-    private boolean isReverseToLastPlayed(Card card) {
-        return Card.compareRank(card, getLastPlayedCard()) == -1;
-    }
-
-    private boolean canTriggerSpecialRule() {
-        return !playedCards.isEmpty() && playedCards.size() <= 3 && ruleEngine.getTurnPlayed() == 1;
-    }
-
-    private void activateRule(String rank, boolean isReverse) {
-        if (isReverse) {
-            ruleEngine.setReverseActive(true);
-            ruleEngine.setActiveReverseRank(rank);
-        } else {
-            ruleEngine.setSuiteActive(true);
-            ruleEngine.setActiveSuiteRank(rank);
-        }
-    }
-
-    private void activateSuite(Card card) {
-        activateRule(card.getRank(), false);
-    }
-
-    private void activateReverse(Card card) {
-        activateRule(card.getRank(), true);
     }
 
     private void clearPlayedCards() {
@@ -699,7 +669,7 @@ public class Game {
         return deck;
     }
 
-    public void setDeck(LinkedHashSet<Card> deck) {
+    public void setDeck(Set<Card> deck) {
         this.deck = deck;
     }
 
