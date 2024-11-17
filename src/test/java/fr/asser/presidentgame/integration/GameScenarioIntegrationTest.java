@@ -227,7 +227,7 @@ class GameScenarioIntegrationTest {
         game.getDeck().clear();
         gameService.saveGame(game);
 
-        initialazeDeck();
+        initializeDeck();
 
         // Distribution des cartes manuelle
         game.getPlayers().get(0).setHand(List.of(
@@ -401,7 +401,7 @@ class GameScenarioIntegrationTest {
         simulateTurn(playerIndex, cards, false);
     }
 
-    private void initialazeDeck() {
+    private void initializeDeck() {
         String[] suits = {"Hearts", "Diamonds", "Clubs", "Spades"};
         String[] cardRanks = {"3", "4", "5", "6", "7", "8", "9", "10", "J", "Q", "K", "A", "2"};
 
