@@ -2,6 +2,7 @@ package fr.asser.presidentgame.model;
 
 import com.fasterxml.jackson.annotation.JsonBackReference;
 import fr.asser.presidentgame.exception.InvalidMoveException;
+import fr.asser.presidentgame.rules.RuleEngine;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.persistence.*;
 
@@ -41,19 +42,14 @@ public class Game {
     @Enumerated(EnumType.STRING)
     private GameState state = GameState.INITIALIZED;
 
-    private int turnPlayed = 0;
     private int currentPlayerIndex = 0;
-    private boolean isForcedRankActive = false;
-    private String currentRequiredRank = null;
-    private boolean suiteActive = false;
-    private String activeSuiteRank = null;
-    private boolean reverseActive = false;
-    private String activeReverseRank = null;
-    private int currentMoveSize = 0; // 0 indique qu'aucun mouvement n'a encore été fait
-    private boolean revolutionActive = false;
+
+    @Transient
+    private RuleEngine ruleEngine;
 
     public Game() {
         initializeDeck();
+        ruleEngine = new RuleEngine();
     }
 
     // Méthodes liées au jeu
@@ -115,7 +111,7 @@ public class Game {
 
     private void applySpecialRules(boolean isSpecialRuleActivated, List<Card> cards) {
         if (isSpecialRuleActivated) {
-            determineAndApplySpecialRule(cards.getFirst());
+            ruleEngine.applySpecialRule(cards.getFirst(), getLastPlayedCard(), ruleEngine.getTurnPlayed());
         }
     }
 
@@ -129,11 +125,7 @@ public class Game {
     }
 
     private void determineAndApplySpecialRule(Card card) {
-        if (canTriggerSpecialRule() && isConsecutiveToLastPlayed(card)) {
-            activateSuite(card);
-        } else if (canTriggerSpecialRule() && isReverseToLastPlayed(card)) {
-            activateReverse(card);
-        }
+        ruleEngine.applySpecialRule(card, getLastPlayedCard(), ruleEngine.getTurnPlayed());
     }
 
     void applySpecialRuleIfEligible(boolean isSpecialRuleActivated, List<Card> cards) {
@@ -259,13 +251,15 @@ public class Game {
     }
 
     private void checkMoveConditions(List<Card> cards) {
-        if (isForcedRankActive && !cards.getFirst().getRank().equals(currentRequiredRank)) {
-            throw new InvalidMoveException("You must play a card of rank " + currentRequiredRank + " or pass.");
+        Card firstCard = cards.getFirst();
+
+        if (ruleEngine.isForcedRankActive() && !ruleEngine.isValidMove(firstCard, RuleType.FORCED_RANK)) {
+            throw new InvalidMoveException("You must play a card of rank " + ruleEngine.getCurrentRequiredRank() + " or pass.");
         }
-        if (suiteActive && !isValidSuiteMove(cards.getFirst())) {
+        if (ruleEngine.isSuiteActive() && !ruleEngine.isValidMove(firstCard, RuleType.SUITE)) {
             throw new InvalidMoveException("You must follow the suite or pass.");
         }
-        if (reverseActive && !isValidReverseMove(cards.getFirst())) {
+        if (ruleEngine.isReverseActive() && !ruleEngine.isValidMove(firstCard, RuleType.REVERSE)) {
             throw new InvalidMoveException("You must play a card lower than the current rank or pass.");
         }
     }
@@ -278,13 +272,13 @@ public class Game {
     void processPassTurn(Player currentPlayer) {
         boolean alreadyPassed = currentPlayer.hasPassed();
 
-        if (suiteActive || reverseActive) {
+        if (ruleEngine.isSuiteActive() || ruleEngine.isReverseActive()) {
             currentPlayer.setCanPlayInCurrentPli(false);
         }
 
-        if (isForcedRankActive && !alreadyPassed) {
-            isForcedRankActive = false;
-            currentRequiredRank = null;
+        if (ruleEngine.isForcedRankActive() && !alreadyPassed) {
+            ruleEngine.setForcedRankActive(false);
+            ruleEngine.setActiveReverseRank(null);
         }
 
         currentPlayer.passTurn();
@@ -298,7 +292,7 @@ public class Game {
             currentPlayerIndex = getLastPlayerWhoPlayedIndex();
             return;
         }
-        turnPlayed++;
+        ruleEngine.incrementTurnPlayed();
         currentPlayerIndex = (currentPlayerIndex + 1) % players.size();
     }
 
@@ -328,10 +322,10 @@ public class Game {
     }
 
     void handlePostPlayLogic(List<Card> cards) {
-        if (currentMoveSize == 0) {
-            currentMoveSize = cards.size();
+        if (ruleEngine.getCurrentMoveSize() == 0) {
+            ruleEngine.setCurrentMoveSize(cards.size());
         } else {
-            if (cards.size() != currentMoveSize) {
+            if (cards.size() != ruleEngine.getCurrentMoveSize()) {
                 throw new InvalidMoveException("All players must play the same number of cards.");
             }
         }
@@ -341,8 +335,8 @@ public class Game {
             return;
         }
 
-        if(cards.stream().anyMatch(card -> reverseActive ? Objects.equals(card.getRank(), "3")
-                                                         : Objects.equals(card.getRank(), "2"))) {
+        if(cards.stream().anyMatch(card -> ruleEngine.isReverseActive() ? Objects.equals(card.getRank(), "3")
+                                                                        : Objects.equals(card.getRank(), "2"))) {
             resetAfterPli();
             return;
         }
@@ -355,7 +349,7 @@ public class Game {
             return;
         }
         checkOrNothingRule(cards);
-        turnPlayed++;
+        ruleEngine.incrementTurnPlayed();
         currentPlayerIndex = (currentPlayerIndex + 1) % players.size();
     }
 
@@ -379,35 +373,27 @@ public class Game {
 
     void resetAfterPli() {
         clearPlayedCards();
-        isForcedRankActive = false;
-        suiteActive = false;
-        reverseActive = false;
-        currentRequiredRank = null;
-        activeSuiteRank = null;
-        activeReverseRank = null;
-        currentMoveSize = 0;
-        turnPlayed = 0;
-        revolutionActive = false;
-        resetPlayers();  // Réinitialiser l'état de passage des joueurs
+        ruleEngine.resetRules();
+        resetPlayers(); // Réinitialiser l'état de passage des joueurs
     }
 
     void checkOrNothingRule(List<Card> cards) {
         if (cards.size() == 1) {
             if (playedCards.size() >= 2 && Card.areSameRank(getLastPlayedCards(2))) {
-                isForcedRankActive = true;
-                currentRequiredRank = playedCards.getLast().getRank();
+                ruleEngine.setForcedRankActive(true);
+                ruleEngine.setCurrentRequiredRank(playedCards.getLast().getRank());
             } else {
-                isForcedRankActive = false;
-                currentRequiredRank = null;
+                ruleEngine.setForcedRankActive(false);
+                ruleEngine.setCurrentRequiredRank(null);
             }
         } else {
-            isForcedRankActive = false;
-            currentRequiredRank = null;
+            ruleEngine.setForcedRankActive(false);
+            ruleEngine.setCurrentRequiredRank(null);
         }
     }
 
     private void triggerRevolution() {
-        revolutionActive = true;
+        ruleEngine.triggerRevolution();
     }
 
     boolean allPlayersHavePassed() {
@@ -455,26 +441,12 @@ public class Game {
         return playedCards.getLast();
     }
 
-    private boolean validateSuiteOrReverse(Card card, String activeRank, boolean isReverse) {
-        if (activeRank == null) return false;
-        int comparison = Card.compareRank(card, new Card(card.getSuit(), activeRank));
-        return isReverse ? comparison == -1 : comparison == 1;
-    }
-
-    private boolean isValidSuiteMove(Card card) {
-        return validateSuiteOrReverse(card, activeSuiteRank, false);
-    }
-
-    private boolean isValidReverseMove(Card card) {
-        return validateSuiteOrReverse(card, activeReverseRank, true);
-    }
-
     private boolean isFollowingSuite(List<Card> cards) {
         if (cards.isEmpty()) {
             return false;
         }
 
-        var compareRank = activeSuiteRank != null ? activeSuiteRank : getLastPlayedCard().getRank();
+        var compareRank = ruleEngine.getActiveSuiteRank() != null ? ruleEngine.getActiveSuiteRank() : getLastPlayedCard().getRank();
 
         // Vérifier que toutes les cartes ont le même rang (si une paire ou triple est en jeu)
         String firstCardRank = cards.getFirst().getRank();
@@ -494,7 +466,7 @@ public class Game {
             return false;
         }
 
-        var compareRank = activeReverseRank != null ? activeReverseRank : getLastPlayedCard().getRank();
+        var compareRank = ruleEngine.getActiveReverseRank() != null ? ruleEngine.getActiveReverseRank() : getLastPlayedCard().getRank();
 
         // Vérifier que toutes les cartes ont le même rang (si une paire ou triple est en jeu)
         String firstCardRank = cards.getFirst().getRank();
@@ -518,16 +490,16 @@ public class Game {
     }
 
     private boolean canTriggerSpecialRule() {
-        return !playedCards.isEmpty() && playedCards.size() <= 3 && turnPlayed == 1;
+        return !playedCards.isEmpty() && playedCards.size() <= 3 && ruleEngine.getTurnPlayed() == 1;
     }
 
     private void activateRule(String rank, boolean isReverse) {
         if (isReverse) {
-            reverseActive = true;
-            activeReverseRank = rank;
+            ruleEngine.setReverseActive(true);
+            ruleEngine.setActiveReverseRank(rank);
         } else {
-            suiteActive = true;
-            activeSuiteRank = rank;
+            ruleEngine.setSuiteActive(true);
+            ruleEngine.setActiveSuiteRank(rank);
         }
     }
 
@@ -610,23 +582,23 @@ public class Game {
         }
 
         // Obtenir toutes les combinaisons de la main du joueur qui respectent la taille du dernier pli
-        List<List<Card>> possibleCombinations = getCombinationsOfSize(hand, currentMoveSize);
+        List<List<Card>> possibleCombinations = getCombinationsOfSize(hand, ruleEngine.getCurrentMoveSize());
 
         // Vérification des règles spéciales (Suite, Ou Rien)
         for (List<Card> combination : possibleCombinations) {
             // Règle "Ou rien"
-            if (isForcedRankActive) {
-                if (combination.getFirst().getRank().equals(currentRequiredRank)) {
+            if (ruleEngine.isForcedRankActive()) {
+                if (combination.getFirst().getRank().equals(ruleEngine.getCurrentRequiredRank())) {
                     playableCards.add(combination);  // Le joueur doit jouer une carte de ce rang ou passer
                 }
             }
-            else if (reverseActive) {
+            else if (ruleEngine.isReverseActive()) {
                 if (isFollowingReverse(combination)) {
                     playableCards.add(combination);  // Ajouter si la règle "Reverse" est respectée
                 }
             }
             // Règle de la suite
-            else if (suiteActive) {
+            else if (ruleEngine.isSuiteActive()) {
                 if (isFollowingSuite(combination)) {
                     playableCards.add(combination);  // Ajouter si la suite est respectée
                 }
@@ -636,7 +608,7 @@ public class Game {
                 playableCards.add(combination);  // Ajouter les combinaisons valides
             }
 
-            if (turnPlayed == 1 && (isFollowingReverse(combination) || isFollowingSuite(combination))) {
+            if (ruleEngine.getTurnPlayed() == 1 && (isFollowingReverse(combination) || isFollowingSuite(combination))) {
                 playableCards.add(combination);  // Ajouter si la règle "Reverse" est respectée
             }
         }
@@ -773,75 +745,11 @@ public class Game {
         isSaved = saved;
     }
 
-    public boolean getIsForcedRankActive() {
-        return isForcedRankActive;
-    }
-
-    public void setIsForcedRankActive(boolean isForcedRankActive) {
-        this.isForcedRankActive = isForcedRankActive;
-    }
-
-    public String getCurrentRequiredRank() {
-        return currentRequiredRank;
-    }
-
-    public void setCurrentRequiredRank(String currentRequiredRank) {
-        this.currentRequiredRank = currentRequiredRank;
-    }
-
     public Boolean getSaved() {
         return isSaved;
     }
 
     public void setSaved(Boolean saved) {
         isSaved = saved;
-    }
-
-    public boolean isSuiteActive() {
-        return suiteActive;
-    }
-
-    public void setSuiteActive(boolean suiteActive) {
-        this.suiteActive = suiteActive;
-    }
-
-    public String getActiveSuiteRank() {
-        return activeSuiteRank;
-    }
-
-    public void setActiveSuiteRank(String activeSuiteRank) {
-        this.activeSuiteRank = activeSuiteRank;
-    }
-
-    public int getCurrentMoveSize() {
-        return currentMoveSize;
-    }
-
-    public void setCurrentMoveSize(int currentMoveSize) {
-        this.currentMoveSize = currentMoveSize;
-    }
-
-    public int getTurnPlayed() {
-        return turnPlayed;
-    }
-
-    public void setTurnPlayed(int turnPlayed) {
-        this.turnPlayed = turnPlayed;
-    }
-
-    public boolean isReverseActive() {
-        return reverseActive;
-    }
-
-    public void setReverseActive(boolean reverseActive) {
-        this.reverseActive = reverseActive;
-    }
-
-    public String getActiveReverseRank() {
-        return activeReverseRank;
-    }
-
-    public void setActiveReverseRank(String activeReverseRank) {
-        this.activeReverseRank = activeReverseRank;
     }
 }

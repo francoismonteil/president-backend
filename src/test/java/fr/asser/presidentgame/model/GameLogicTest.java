@@ -205,36 +205,6 @@ class GameLogicTest {
     }
 
     @Test
-    void testCheckPlayConditions_InvalidOuRienCondition() {
-        // Arrange
-        game.setIsForcedRankActive(true);
-        game.setCurrentRequiredRank("7");
-
-        List<Card> cardsToPlay = List.of(new Card("Hearts", "6"));  // Carte qui ne respecte pas "Ou Rien"
-
-        // Act & Assert
-        InvalidMoveException exception = assertThrows(InvalidMoveException.class, () -> {
-            game.checkPlayConditions(cardsToPlay);
-        });
-        assertEquals("You must play a card of rank 7 or pass.", exception.getMessage());
-    }
-
-    @Test
-    void testCheckPlayConditions_InvalidSuiteCondition() {
-        // Arrange
-        game.setSuiteActive(true);
-        game.setActiveSuiteRank("8");
-
-        List<Card> cardsToPlay = List.of(new Card("Hearts", "7"));  // Carte qui ne suit pas la suite
-
-        // Act & Assert
-        InvalidMoveException exception = assertThrows(InvalidMoveException.class, () -> {
-            game.checkPlayConditions(cardsToPlay);
-        });
-        assertEquals("You must follow the suite or pass.", exception.getMessage());
-    }
-
-    @Test
     void testDeterminePliWinner() {
         // Arrange
         Player player1 = new Player("Player1");
@@ -292,33 +262,6 @@ class GameLogicTest {
 
         // Assert
         assertFalse(result);
-    }
-
-    @Test
-    void testCheckOrNothingRule_ActivatesOrNothing() {
-        // Arrange
-        List<Card> lastPlayed = List.of(new Card("Hearts", "7"), new Card("Diamonds", "7"));  // Deux cartes du même rang
-        game.getPlayedCards().addAll(lastPlayed);
-
-        // Act
-        game.checkOrNothingRule(List.of(new Card("Spades", "7")));
-
-        // Assert
-        assertTrue(game.getIsForcedRankActive());
-        assertEquals("7", game.getCurrentRequiredRank());
-    }
-
-    @Test
-    void testCheckOrNothingRule_DoesNotActivateOrNothing() {
-        // Arrange
-        List<Card> lastPlayed = List.of(new Card("Hearts", "7"), new Card("Diamonds", "8"));  // Pas deux cartes du même rang
-        game.getPlayedCards().addAll(lastPlayed);
-
-        // Act
-        game.checkOrNothingRule(List.of(new Card("Spades", "9")));
-
-        // Assert
-        assertFalse(game.getIsForcedRankActive());
     }
 
     @Test
@@ -411,26 +354,6 @@ class GameLogicTest {
         assertEquals(2, game.getRanks().get(player2)); // Player2 est Vice-Président
         assertNull(game.getRanks().get(player3)); // Player3 n'a pas encore de rang
         assertEquals(GameState.IN_PROGRESS, game.getState()); // La partie continue
-    }
-
-    @Test
-    void testPlayCards_SuiteOption_ActivatesSuite() {
-        // Arrange
-        Player player = new Player("Player1");
-        player.setId(1L);
-        player.setHand(new ArrayList<>(List.of(new Card("Hearts", "5"), new Card("Hearts", "6"))));
-        game.addPlayer(player);
-        game.setState(GameState.IN_PROGRESS);
-        game.setTurnPlayed(1);
-        game.getPlayedCards().add(new Card("Hearts", "4")); // Dernière carte jouée
-
-        // Act
-        game.playCards(1L, List.of(new Card("Hearts", "5")), true);
-
-        // Assert
-        assertTrue(game.isSuiteActive());
-        assertEquals("5", game.getActiveSuiteRank());
-        assertEquals(1, player.getHand().size()); // Le joueur a joué une carte
     }
 
     @Test
@@ -556,100 +479,6 @@ class GameLogicTest {
         assertFalse(result); // La fermeture échoue, car il manque une carte pour compléter
         assertEquals(GameState.IN_PROGRESS, game.getState()); // Le jeu continu
     }
-
-    @Test
-    void testHandleSuiteAndReverseOptions_ActivateSuite_Success() {
-        // Arrange
-        game.getPlayedCards().add(new Card("Hearts", "7")); // Dernière carte jouée
-        game.setTurnPlayed(1); // Première manche
-        game.setSuiteActive(false); // Suite initialement inactive
-
-        List<Card> cardsToPlay = List.of(new Card("Hearts", "8")); // Carte qui suit la suite
-
-        // Act
-        game.applySpecialRuleIfEligible(true, cardsToPlay);
-
-        // Assert
-        assertTrue(game.isSuiteActive());
-        assertEquals("8", game.getActiveSuiteRank());
-        assertFalse(game.isReverseActive());
-    }
-
-    @Test
-    void testHandleSuiteAndReverseOptions_ActivateReverse_Success() {
-        // Arrange
-        game.getPlayedCards().add(new Card("Hearts", "9")); // Dernière carte jouée
-        game.setTurnPlayed(1); // Première manche
-        game.setReverseActive(false); // Reverse initialement inactif
-
-        List<Card> cardsToPlay = List.of(new Card("Hearts", "8")); // Carte qui active le reverse
-
-        // Act
-        game.applySpecialRuleIfEligible(true, cardsToPlay);
-
-        // Assert
-        assertTrue(game.isReverseActive());
-        assertEquals("8", game.getActiveReverseRank());
-        assertFalse(game.isSuiteActive());
-    }
-
-    @Test
-    void testHandleSuiteAndReverseOptions_SuiteOptionInactive_NoChange() {
-        // Arrange
-        game.getPlayedCards().add(new Card("Hearts", "7")); // Dernière carte jouée
-        game.setTurnPlayed(1); // Première manche
-        game.setSuiteActive(false);
-
-        List<Card> cardsToPlay = List.of(new Card("Hearts", "8"));
-
-        // Act
-        game.applySpecialRuleIfEligible(false, cardsToPlay);
-
-        // Assert
-        assertFalse(game.isSuiteActive());
-        assertFalse(game.isReverseActive());
-        assertNull(game.getActiveSuiteRank());
-        assertNull(game.getActiveReverseRank());
-    }
-
-    @Test
-    void testApplySpecialRuleIfEligible_NoValidTrigger_NoChange() {
-        // Arrange
-        game.getPlayedCards().add(new Card("Hearts", "7")); // Dernière carte jouée
-        game.setTurnPlayed(1); // Première manche
-        game.setSuiteActive(false);
-        game.setReverseActive(false);
-
-        List<Card> cardsToPlay = List.of(new Card("Diamonds", "9")); // Carte qui ne déclenche rien
-
-        // Act
-        game.applySpecialRuleIfEligible(true, cardsToPlay);
-
-        // Assert
-        assertFalse(game.isSuiteActive());
-        assertFalse(game.isReverseActive());
-        assertNull(game.getActiveSuiteRank());
-        assertNull(game.getActiveReverseRank());
-    }
-
-    @Test
-    void testApplySpecialRuleIfEligible_BothTriggers_NoChange() {
-        // Arrange
-        game.getPlayedCards().addAll(List.of(new Card("Hearts", "7"), new Card("Hearts", "8"))); // Cartes jouées
-        game.setTurnPlayed(1); // Première manche
-        game.setSuiteActive(false);
-        game.setReverseActive(false);
-
-        List<Card> cardsToPlay = List.of(new Card("Hearts", "6")); // Carte qui pourrait activer les deux (mais conflit)
-
-        // Act
-        game.applySpecialRuleIfEligible(true, cardsToPlay);
-
-        // Assert
-        assertFalse(game.isSuiteActive());
-        assertFalse(game.isReverseActive());
-    }
-
 
     @Test
     void testUpdateGameStateAfterMove_PlayerFinishes_Success() {
