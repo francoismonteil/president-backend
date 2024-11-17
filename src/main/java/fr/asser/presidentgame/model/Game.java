@@ -1,6 +1,7 @@
 package fr.asser.presidentgame.model;
 
 import com.fasterxml.jackson.annotation.JsonBackReference;
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 import fr.asser.presidentgame.exception.InvalidMoveException;
 import fr.asser.presidentgame.rules.RuleEngine;
 import io.swagger.v3.oas.annotations.media.Schema;
@@ -22,7 +23,8 @@ public class Game {
     private AppUser appUser;
 
     @OneToMany(mappedBy = "game", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.EAGER)
-    private List<Player> players = new ArrayList<>();
+    @JsonManagedReference
+    private List<Player> players;
 
     @OneToMany(cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.EAGER)
     private Set<Card> deck = new LinkedHashSet<>();
@@ -49,6 +51,7 @@ public class Game {
 
     public Game() {
         initializeDeck();
+        this.players = new ArrayList<>();
         ruleEngine = new RuleEngine();
     }
 
@@ -64,6 +67,7 @@ public class Game {
         distributeDeckToPlayers();
         state = GameState.DISTRIBUTING_CARDS;
         redistributeCards();
+        state = GameState.IN_PROGRESS;
     }
 
     public void endGame() {

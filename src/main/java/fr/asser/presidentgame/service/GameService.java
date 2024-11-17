@@ -38,12 +38,8 @@ public class GameService {
     }
 
     public Game getGame(Long gameId) {
-        Game game = gameRepository.findById(gameId)
-                .orElseThrow(() -> new GameNotFoundException(gameId));
-
-        // Chargement des collections dans des requêtes séparées
-        game.getPlayedCards().size(); // Cela déclenche le chargement des cartes jouées
-        game.getPlayers().size();     // Cela déclenche le chargement des joueurs
+        Game game = gameRepository.findByIdWithRanks(gameId).orElseThrow(() -> new GameNotFoundException(gameId));
+        game.getPlayers().size(); // Charger les joueurs pour éviter LazyInitializationException
 
         return game;
     }

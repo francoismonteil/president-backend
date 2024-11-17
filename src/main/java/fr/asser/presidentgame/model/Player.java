@@ -1,5 +1,6 @@
 package fr.asser.presidentgame.model;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
 import fr.asser.presidentgame.exception.InvalidMoveException;
 import jakarta.persistence.*;
 
@@ -25,6 +26,7 @@ public class Player {
 
     @ManyToOne
     @JoinColumn(name = "game_id")
+    @JsonBackReference
     private Game game;
 
     private boolean hasPassed;

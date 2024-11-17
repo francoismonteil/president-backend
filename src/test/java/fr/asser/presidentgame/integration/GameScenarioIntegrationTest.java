@@ -212,6 +212,16 @@ class GameScenarioIntegrationTest {
         assertEquals(4, game.getRanks().get(game.getPlayers().get(0))); //Trouduc
 
         gameService.saveGame(game);
+        game = gameService.restartRound(game.getId());
+
+        assertEquals(GameState.IN_PROGRESS, game.getState());
+        gameService.saveGame(game);
+
+        // Vérifier que les cartes ont été redistribuées
+        for (Player player : game.getPlayers()) {
+            assertFalse(player.getHand().isEmpty(), "Each player should have cards.");
+        }
+
     }
 
 
