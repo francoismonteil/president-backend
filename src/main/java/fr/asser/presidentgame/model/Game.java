@@ -423,12 +423,16 @@ public class Game {
 
     private boolean isSingleCardMoveValid(List<Card> cards) {
         var gap = Card.compareRank(cards.getFirst(), getLastPlayedCard());
-        return ruleEngine.isRevolutionActive() ? gap <= 0 || gap == 1 : gap >= 0 || gap == -1;
+        return ruleEngine.isRevolutionActive()
+                ? gap <= 0 || (ruleEngine.getTurnPlayed() == 1 || ruleEngine.isReverseActive()) && gap == 1
+                : gap >= 0 || (ruleEngine.getTurnPlayed() == 1 || ruleEngine.isSuiteActive()) && gap == -1;
     }
 
     private boolean isSameRankMove(List<Card> cards) {
         var gap = Card.compareRank(cards.getFirst(), getLastPlayedCards(cards.size()).getFirst());
-        return ruleEngine.isRevolutionActive() ? gap <= 0 || gap == 1 : gap >= 0 || gap == -1;
+        return ruleEngine.isRevolutionActive()
+                ? gap <= 0 || (ruleEngine.getTurnPlayed() == 1 || ruleEngine.isReverseActive()) && gap == 1
+                : gap >= 0 || (ruleEngine.getTurnPlayed() == 1 || ruleEngine.isSuiteActive()) && gap == -1;
     }
 
     private boolean isSequenceMove(List<Card> cards) {

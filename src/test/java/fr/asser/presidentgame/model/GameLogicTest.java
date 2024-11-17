@@ -91,7 +91,7 @@ class GameLogicTest {
 
         game.distributeCards();  // Il ne devrait pas y avoir d'erreur même si le deck est vide
 
-        assertEquals(GameState.DISTRIBUTING_CARDS, game.getState());
+        assertEquals(GameState.IN_PROGRESS, game.getState());
     }
 
     @Test

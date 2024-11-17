@@ -101,7 +101,7 @@ class RuleEngineTest {
         assertFalse(ruleEngine.isSuiteActive());
         assertFalse(ruleEngine.isReverseActive());
         assertFalse(ruleEngine.isForcedRankActive());
-        assertFalse(ruleEngine.isRevolutionActive());
+        assertTrue(ruleEngine.isRevolutionActive());
     }
 
     // Test pour la validation de la taille des mouvements

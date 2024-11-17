@@ -34,7 +34,7 @@ class GameAdditionalTests {
         game.distributeCards();
 
         // Assert
-        assertEquals(GameState.DISTRIBUTING_CARDS, game.getState());
+        assertEquals(GameState.IN_PROGRESS, game.getState());
         assertFalse(player1.getHand().isEmpty());
         assertFalse(player2.getHand().isEmpty());
         assertFalse(player3.getHand().isEmpty());

@@ -76,7 +76,7 @@ class GameServiceTest {
         player.setId(1L);
         game.getPlayers().add(player);
         game.setState(GameState.IN_PROGRESS);
-        when(gameRepository.findById(anyLong())).thenReturn(java.util.Optional.of(game));
+        when(gameRepository.findByIdWithRanks(anyLong())).thenReturn(java.util.Optional.of(game));
         when(gameRepository.save(any(Game.class))).thenReturn(game);
 
         // Act
@@ -97,7 +97,7 @@ class GameServiceTest {
         // Arrange
         Game game = new Game();
         game.setState(GameState.INITIALIZED);
-        when(gameRepository.findById(anyLong())).thenReturn(Optional.of(game));
+        when(gameRepository.findByIdWithRanks(anyLong())).thenReturn(Optional.of(game));
         when(gameRepository.save(any(Game.class))).thenReturn(game);
 
         // Act
@@ -120,7 +120,7 @@ class GameServiceTest {
         player.setHand(List.of(new Card("Hearts", "3")));
         game.getPlayers().add(player);
         game.setState(GameState.IN_PROGRESS);
-        when(gameRepository.findById(anyLong())).thenReturn(Optional.of(game));
+        when(gameRepository.findByIdWithRanks(anyLong())).thenReturn(Optional.of(game));
         when(gameRepository.save(any(Game.class))).thenReturn(game);
 
         // Act
@@ -140,9 +140,8 @@ class GameServiceTest {
         player.setId(1L);
         game.getPlayers().add(player);
         game.setState(GameState.IN_PROGRESS);
-        when(gameRepository.findById(anyLong())).thenReturn(Optional.of(game));
+        when(gameRepository.findByIdWithRanks(anyLong())).thenReturn(Optional.of(game));
         when(gameRepository.save(any(Game.class))).thenReturn(game);
-
 
         InvalidMoveException exception = assertThrows(InvalidMoveException.class, () -> {
             gameService.playCards(1L, player.getId(), List.of(new Card("Hearts", "3")));
@@ -156,7 +155,7 @@ class GameServiceTest {
     void testSaveGame_Success() {
         // Arrange
         Game game = new Game();
-        when(gameRepository.findById(anyLong())).thenReturn(Optional.of(game));
+        when(gameRepository.findByIdWithRanks(anyLong())).thenReturn(Optional.of(game));
         when(gameRepository.save(any(Game.class))).thenReturn(game);
 
         // Act
@@ -192,7 +191,7 @@ class GameServiceTest {
         game.getPlayers().add(player2);
         game.setState(GameState.IN_PROGRESS);
         game.setCurrentPlayerIndex(0);  // C'est au tour de player1
-        when(gameRepository.findById(anyLong())).thenReturn(Optional.of(game));
+        when(gameRepository.findByIdWithRanks(anyLong())).thenReturn(Optional.of(game));
 
         // Act & Assert
         NotPlayersTurnException exception = assertThrows(NotPlayersTurnException.class, () -> {
@@ -216,7 +215,7 @@ class GameServiceTest {
         player.setId(1L);
         game.getPlayers().add(player);
         game.setState(GameState.IN_PROGRESS);
-        when(gameRepository.findById(anyLong())).thenReturn(Optional.of(game));
+        when(gameRepository.findByIdWithRanks(anyLong())).thenReturn(Optional.of(game));
 
         // Act & Assert
         IllegalStateException exception = assertThrows(IllegalStateException.class, () -> {

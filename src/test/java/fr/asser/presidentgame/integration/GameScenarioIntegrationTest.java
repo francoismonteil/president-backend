@@ -155,8 +155,8 @@ class GameScenarioIntegrationTest {
         simulateTurn(1, List.of(new Card("Diamonds", "7")));
         simulateTurn(2, List.of(new Card("Clubs", "9")));
         simulateTurn(3, List.of(new Card("Clubs", "10")));
-        simulateTurn(0, List.of(new Card("Spades", "K")));
-        simulateTurn(1, List.of(new Card("Hearts", "Q")));
+        simulateTurn(0, List.of(new Card("Clubs", "Q")));
+        simulateTurn(1, List.of(new Card("Diamonds", "K")));
         simulateTurn(2, List.of(new Card("Clubs", "2")));
 
         assertTrue(game.getPlayedCards().isEmpty());
@@ -196,13 +196,13 @@ class GameScenarioIntegrationTest {
         assertTrue(game.getPlayedCards().isEmpty());
         assertEquals(0, game.getCurrentPlayerIndex());
 
-        simulateTurn(0, List.of(new Card("Clubs", "Q")));
+        simulateTurn(0, List.of(new Card("Spades", "K")));
         simulateTurn(1, List.of(new Card("Diamonds", "2")));
 
         assertTrue(game.getPlayedCards().isEmpty());
         assertEquals(1, game.getCurrentPlayerIndex());
 
-        simulateTurn(1, List.of(new Card("Diamonds", "K")));
+        simulateTurn(1, List.of(new Card("Hearts", "Q")));
 
         // À la fin, tous les joueurs doivent avoir un rang :
         assertEquals(GameState.FINISHED, game.getState());
