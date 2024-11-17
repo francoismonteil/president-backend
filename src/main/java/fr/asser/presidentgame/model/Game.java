@@ -82,6 +82,7 @@ public class Game {
         // Réinitialiser les attributs de l'état du jeu
         currentPlayerIndex = 0;
         resetAfterPli();
+        ruleEngine.resetRevolution();
 
         // Remettre à zéro l'état de chaque joueur
         for (Player player : players) {
@@ -336,6 +337,7 @@ public class Game {
 
         if (cards.size() == 4 && Card.areSameRank(cards)) {
             triggerRevolution();
+            resetAfterPli();
             return;
         }
 
@@ -697,7 +699,7 @@ public class Game {
         return deck;
     }
 
-    public void setDeck(Set<Card> deck) {
+    public void setDeck(LinkedHashSet<Card> deck) {
         this.deck = deck;
     }
 

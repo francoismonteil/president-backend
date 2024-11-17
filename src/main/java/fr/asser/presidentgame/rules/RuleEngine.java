@@ -40,7 +40,6 @@ public class RuleEngine {
         activeReverseRank = null;
         forcedRankActive = false;
         currentRequiredRank = null;
-        revolutionActive = false;
         currentMoveSize = 0;
         turnPlayed = 0;
     }
@@ -122,6 +121,10 @@ public class RuleEngine {
 
     public void triggerRevolution() {
         revolutionActive = true;
+    }
+
+    public void resetRevolution() {
+        revolutionActive = false;
     }
 
     public void resetCurrentMoveSize() {
