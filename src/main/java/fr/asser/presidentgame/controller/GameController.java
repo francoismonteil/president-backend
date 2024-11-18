@@ -1,9 +1,12 @@
 package fr.asser.presidentgame.controller;
 
-import fr.asser.presidentgame.model.Card;
+import fr.asser.presidentgame.dto.PlayCardsRequest;
 import fr.asser.presidentgame.model.Game;
 import fr.asser.presidentgame.service.GameService;
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.ExampleObject;
+import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import org.springframework.context.MessageSource;
 import org.springframework.http.ResponseEntity;
@@ -28,7 +31,13 @@ public class GameController {
     @ApiResponse(responseCode = "200", description = "Game created successfully")
     @ApiResponse(responseCode = "400", description = "Invalid input")
     @PostMapping
-    public ResponseEntity<Game> createGame(@RequestBody List<String> playerNames, Locale locale) {
+    public ResponseEntity<Game> createGame(@RequestBody @io.swagger.v3.oas.annotations.parameters.RequestBody(
+            description = "List of player names",
+            required = true,
+            content = @Content(
+                    schema = @Schema(implementation = List.class),
+                    examples = {@ExampleObject(value = "[\"Alice\", \"Bob\", \"Charlie\"]")})
+    ) List<String> playerNames, Locale locale) {
         if (playerNames == null || playerNames.isEmpty()) {
             return ResponseEntity.badRequest().body(null);
         }
@@ -56,9 +65,9 @@ public class GameController {
     @ApiResponse(responseCode = "400", description = "Invalid move")
     @ApiResponse(responseCode = "404", description = "Game or player not found")
     @PostMapping("/{gameId}/play")
-    public void playCards(@PathVariable Long gameId, @RequestParam Long playerId, @RequestBody List<Card> cards,
-                          @RequestParam boolean isSpecialMoveActivated) {
-        gameService.playCards(gameId, playerId, cards, isSpecialMoveActivated);
+    public ResponseEntity<Void> playCards(@PathVariable Long gameId, @RequestParam Long playerId, @RequestBody PlayCardsRequest request) {
+        gameService.playCards(gameId, playerId, request.getCards(), request.isSpecialMoveActivated());
+        return ResponseEntity.ok().build();
     }
 
     @Operation(summary = "Pass turn in a game")

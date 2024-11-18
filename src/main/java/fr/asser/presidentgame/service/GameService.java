@@ -46,11 +46,11 @@ public class GameService {
 
     public Game startGame(Long id) {
         Game game = getGame(id);
-        validateUserAccess(game);
+//        validateUserAccess(game);
         game.startGame();
         Game updatedGame = gameRepository.save(game);
         messagingTemplate.convertAndSend("/topic/gameState", updatedGame);
-        logGameAction(game.getId(), getCurrentUser().getId(), "Game started");
+//        logGameAction(game.getId(), getCurrentUser().getId(), "Game started");
         return updatedGame;
     }
 
@@ -67,7 +67,7 @@ public class GameService {
 
         Game updatedGame = gameRepository.save(game);
         messagingTemplate.convertAndSend("/topic/gameState", updatedGame);
-        logGameAction(gameId, getCurrentUser().getId(), "Game restarted for a new round");
+//        logGameAction(gameId, getCurrentUser().getId(), "Game restarted for a new round");
 
         return updatedGame;
     }
@@ -104,7 +104,7 @@ public class GameService {
         validateUserAccess(game);
         game.setIsSaved(true);
         gameRepository.save(game);
-        logGameAction(game.getId(), getCurrentUser().getId(), "Game saved"); // Log centralisé
+//        logGameAction(game.getId(), getCurrentUser().getId(), "Game saved"); // Log centralisé
     }
 
     public Set<Game> loadSavedGames() {

@@ -59,7 +59,7 @@ public class Game {
     // Méthodes liées au jeu
     public void startGame() {
         ensureState(GameState.INITIALIZED, "Game cannot be started in the current state.");
-        state = GameState.IN_PROGRESS;
+        distributeCards();
     }
 
     public void distributeCards() {
@@ -308,7 +308,7 @@ public class Game {
         }
         List<Card> deckList = new ArrayList<>(deck);
         Collections.shuffle(deckList);
-        deck = new LinkedHashSet<>(deckList);
+        deck.addAll(deckList);
     }
 
     private void distributeDeckToPlayers() {
@@ -320,6 +320,8 @@ public class Game {
                 }
             }
         }
+
+        deck.clear();
     }
 
     void handlePostPlayLogic(List<Card> cards) {
