@@ -9,13 +9,8 @@ import java.util.List;
 public class HardAI implements GameAI {
     @Override
     public List<Card> playTurn(Game game, Player player) {
-        List<Card> hand = player.getHand();
-        if (hand.isEmpty()) {
-            return null; // Passe son tour
-        }
-
         // Stratégie : trouver la meilleure combinaison
-        List<List<Card>> playableCards = game.getPlayableCardsForPlayer(player);
+        var playableCards = game.getPlayableCardsForPlayer(player);
         if (playableCards.isEmpty()) {
             return null; // Passe son tour si aucune combinaison valide
         }

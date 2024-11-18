@@ -3,6 +3,7 @@ package fr.asser.presidentgame.model;
 import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
 import fr.asser.presidentgame.exception.InvalidMoveException;
+import fr.asser.presidentgame.exception.NotPlayersTurnException;
 import fr.asser.presidentgame.rules.RuleEngine;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.persistence.*;
@@ -235,7 +236,7 @@ public class Game {
     private Player getCurrentPlayer(Long playerId) {
         Player currentPlayer = players.get(currentPlayerIndex);
         if (!currentPlayer.getId().equals(playerId)) {
-            throw new IllegalStateException("Not this player's turn");
+            throw new NotPlayersTurnException(playerId);
         }
         return currentPlayer;
     }

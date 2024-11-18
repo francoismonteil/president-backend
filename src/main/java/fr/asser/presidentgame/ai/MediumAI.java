@@ -10,16 +10,17 @@ import java.util.List;
 public class MediumAI implements GameAI {
     @Override
     public List<Card> playTurn(Game game, Player player) {
-        List<Card> hand = player.getHand();
-        if (hand.isEmpty()) {
+        var playableCards = game.getPlayableCardsForPlayer(player);
+        if (playableCards.isEmpty()) {
             return null; // Passe son tour
         }
-        // Trier la main par ordre croissant
-        hand.sort(Comparator.comparingInt(card -> Card.RANK_ORDER.indexOf(card.getRank())));
 
-        Card lowestCard = hand.getFirst();
-        if (game.isValidMove(List.of(lowestCard))) {
-            return List.of(lowestCard);
+        // Trier la main par ordre croissant
+        playableCards.sort(Comparator.comparingInt(combinaison -> Card.RANK_ORDER.indexOf(combinaison.getFirst().getRank())));
+
+        List<Card> lowestCombinaision = playableCards.getFirst();
+        if (game.isValidMove(lowestCombinaision)) {
+            return lowestCombinaision;
         } else {
             return null; // Passe son tour si aucune carte valide
         }

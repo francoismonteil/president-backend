@@ -1,6 +1,8 @@
 package fr.asser.presidentgame.model;
 
 import com.fasterxml.jackson.annotation.JsonBackReference;
+import fr.asser.presidentgame.ai.AIFactory;
+import fr.asser.presidentgame.ai.AIType;
 import fr.asser.presidentgame.ai.GameAI;
 import fr.asser.presidentgame.exception.InvalidMoveException;
 import jakarta.persistence.*;
@@ -20,8 +22,8 @@ public class Player {
 
     private boolean isAI;
 
-    @Transient
-    private GameAI ai;
+    @Enumerated(EnumType.STRING)
+    private AIType aiType; // Enumération pour représenter le type d'IA
 
     @OneToMany(cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.EAGER)
     @JoinColumn(name = "player_id")
@@ -49,12 +51,12 @@ public class Player {
         this.canPlayInCurrentPli = true;
     }
 
-    public Player(String name, boolean isAI, GameAI ai) {
+    public Player(String name, boolean isAI, AIType aiType) {
         this.name = name;
         this.hasPassed = false;
         this.canPlayInCurrentPli = true;
         this.isAI = isAI;
-        this.ai = ai;
+        this.aiType = aiType;
     }
 
     public Long getId() {
@@ -156,15 +158,36 @@ public class Player {
         return isAI;
     }
 
-    public void setAI(boolean AI) {
-        isAI = AI;
+    public void setAI(boolean isAI) {
+        this.isAI = isAI;
     }
 
     public GameAI getAI() {
-        return ai;
+        if (aiType != null) {
+            return AIFactory.createAIInstance(aiType);
+        }
+        return null; // Si ce n'est pas un joueur IA
     }
 
-    public void setAI(GameAI ai) {
-        this.ai = ai;
+    public void setAIType(AIType aiType) {
+        this.aiType = aiType;
+    }
+
+    public AIType getAIType() {
+        return aiType;
+    }
+
+    @Override
+    public String toString() {
+        return "Player{" +
+                "id=" + id +
+                ", name='" + name + '\'' +
+                ", isAI=" + isAI +
+                ", aiType=" + aiType +
+                ", hand=" + hand +
+                ", playedCards=" + playedCards +
+                ", hasPassed=" + hasPassed +
+                ", canPlayInCurrentPli=" + canPlayInCurrentPli +
+                '}';
     }
 }

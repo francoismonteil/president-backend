@@ -1,5 +1,6 @@
 package fr.asser.presidentgame.integration;
 
+import fr.asser.presidentgame.dto.PlayerSetup;
 import fr.asser.presidentgame.model.Card;
 import fr.asser.presidentgame.model.Game;
 import fr.asser.presidentgame.model.GameState;
@@ -40,8 +41,12 @@ class GameScenarioIntegrationTest {
 
         SecurityContextHolder.getContext().setAuthentication(authentication);
 
-        List<String> playerNames = List.of("Player1", "Player2", "Player3", "Player4");
-        game = gameService.createGame(playerNames);
+        PlayerSetup player1 = new PlayerSetup("Player1", "easy");
+        PlayerSetup player2 = new PlayerSetup("Player2", "easy");
+        PlayerSetup player3 = new PlayerSetup("Player3", "easy");
+        PlayerSetup player4 = new PlayerSetup("Player4", "easy");
+
+        game = gameService.createGame(List.of(player1, player2, player3, player4));
         gameService.saveGame(game);
     }
 

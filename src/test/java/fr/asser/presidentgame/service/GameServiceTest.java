@@ -1,5 +1,6 @@
 package fr.asser.presidentgame.service;
 
+import fr.asser.presidentgame.dto.PlayerSetup;
 import fr.asser.presidentgame.exception.InvalidMoveException;
 import fr.asser.presidentgame.exception.NotPlayersTurnException;
 import fr.asser.presidentgame.model.*;
@@ -51,7 +52,10 @@ class GameServiceTest {
     @Test
     void testCreateGame_Success() {
         // Arrange
-        List<String> playerNames = List.of("Player1", "Player2", "Player3");
+        PlayerSetup player1 = new PlayerSetup("Player1", "easy");
+        PlayerSetup player2 = new PlayerSetup("Player2", "easy");
+        PlayerSetup player3 = new PlayerSetup("Player3", "easy");
+
         when(gameRepository.save(any(Game.class))).thenAnswer(invocation -> {
             Game savedGame = invocation.getArgument(0);
             savedGame.setId(1L);  // Simuler l'attribution d'un ID après la sauvegarde
@@ -59,7 +63,7 @@ class GameServiceTest {
         });
 
         // Act
-        Game createdGame = gameService.createGame(playerNames);
+        Game createdGame = gameService.createGame(List.of(player1, player2, player3));
 
         // Assert
         assertNotNull(createdGame);

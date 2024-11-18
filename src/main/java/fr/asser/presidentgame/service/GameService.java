@@ -1,5 +1,7 @@
 package fr.asser.presidentgame.service;
 
+import fr.asser.presidentgame.ai.AIType;
+import fr.asser.presidentgame.dto.PlayerSetup;
 import fr.asser.presidentgame.exception.GameNotFoundException;
 import fr.asser.presidentgame.model.*;
 import fr.asser.presidentgame.repository.AppUserRepository;
@@ -27,12 +29,16 @@ public class GameService {
         this.messagingTemplate = messagingTemplate;
     }
 
-    public Game createGame(List<String> playerNames) {
+    public Game createGame(List<PlayerSetup> playerSetups) {
         Game game = new Game();
-        for (String playerName : playerNames) {
-            Player player = new Player(playerName);
+
+        for (PlayerSetup setup : playerSetups) {
+            var isAI = setup.getAiType() != null;
+            Player player = new Player(setup.getPlayerName(), isAI, AIType.valueOf(setup.getAiType()));
+
             game.addPlayer(player);
         }
+
         return gameRepository.save(game);
     }
 
@@ -90,6 +96,25 @@ public class GameService {
         logGameAction(gameId, playerId, "Passed turn"); // Log centralisé
 
         return updatedGame;
+    }
+
+    public void playAiTurn(Long gameId, Long playerId) {
+        Game game = getGame(gameId);
+        Player player = game.getPlayerById(playerId);
+
+        if (player.getAI() == null) {
+            throw new IllegalArgumentException("Player with ID " + playerId + " is not an AI.");
+        }
+
+        // L'IA choisit les cartes à jouer
+        List<Card> chosenCards = player.getAI().playTurn(game, player);
+
+        // Si aucune carte n'est jouée, passer le tour
+        if (chosenCards == null || chosenCards.isEmpty()) {
+            passTurn(gameId, playerId);
+        } else {
+            playCards(gameId, playerId, chosenCards, false);
+        }
     }
 
     public void saveGame(Long id) {

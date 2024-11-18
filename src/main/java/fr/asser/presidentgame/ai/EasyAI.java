@@ -10,10 +10,10 @@ import java.util.Random;
 public class EasyAI implements GameAI {
     @Override
     public List<Card> playTurn(Game game, Player player) {
-        List<Card> hand = player.getHand();
-        if (hand.isEmpty()) {
+        var playableCards = game.getPlayableCardsForPlayer(player);
+        if (playableCards.isEmpty()) {
             return null; // Passe son tour
         }
-        return List.of(hand.get(new Random().nextInt(hand.size())));
+        return playableCards.get(new Random().nextInt(playableCards.size()));
     }
 }
