@@ -9,7 +9,7 @@ import java.util.List;
 
 public class MediumAI implements GameAI {
     @Override
-    public List<Card> playTurn(Game game, Player player) {
+    public AITurn playTurn(Game game, Player player) {
         var playableCards = game.getPlayableCardsForPlayer(player);
         if (playableCards.isEmpty()) {
             return null; // Passe son tour
@@ -20,7 +20,7 @@ public class MediumAI implements GameAI {
 
         List<Card> lowestCombinaision = playableCards.getFirst();
         if (game.isValidMove(lowestCombinaision)) {
-            return lowestCombinaision;
+            return new AITurn(lowestCombinaision, false);
         } else {
             return null; // Passe son tour si aucune carte valide
         }

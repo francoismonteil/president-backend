@@ -408,7 +408,7 @@ public class Game {
         return (int) players.stream().filter(player -> !player.hasPassed()).count();
     }
 
-    protected List<Card> getLastPlayedCards(int count) {
+    public List<Card> getLastPlayedCards(int count) {
         if (playedCards.size() < count) {
             throw new InvalidMoveException("Not enough cards have been played for comparison.");
         }
@@ -731,6 +731,10 @@ public class Game {
 
     public void setIsSaved(Boolean saved) {
         isSaved = saved;
+    }
+
+    public RuleEngine getRuleEngine() {
+        return ruleEngine;
     }
 
     public Boolean getSaved() {

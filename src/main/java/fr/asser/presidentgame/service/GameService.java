@@ -1,5 +1,6 @@
 package fr.asser.presidentgame.service;
 
+import fr.asser.presidentgame.ai.AITurn;
 import fr.asser.presidentgame.ai.AIType;
 import fr.asser.presidentgame.dto.PlayerSetup;
 import fr.asser.presidentgame.exception.GameNotFoundException;
@@ -11,6 +12,7 @@ import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
+import org.springframework.util.CollectionUtils;
 
 import java.util.List;
 import java.util.Set;
@@ -107,13 +109,13 @@ public class GameService {
         }
 
         // L'IA choisit les cartes à jouer
-        List<Card> chosenCards = player.getAI().playTurn(game, player);
+        AITurn aiTurn = player.getAI().playTurn(game, player);
 
         // Si aucune carte n'est jouée, passer le tour
-        if (chosenCards == null || chosenCards.isEmpty()) {
+        if (aiTurn == null || CollectionUtils.isEmpty(aiTurn.getCards())) {
             passTurn(gameId, playerId);
         } else {
-            playCards(gameId, playerId, chosenCards, false);
+            playCards(gameId, playerId, aiTurn.getCards(), aiTurn.isSpecialMove());
         }
     }
 

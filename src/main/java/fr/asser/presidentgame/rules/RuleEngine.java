@@ -159,6 +159,10 @@ public class RuleEngine {
         }
     }
 
+    public boolean canActivateSpecialRule(List<Card> combinaison, RuleType ruleType) {
+        return this.isValidMove(combinaison.getFirst(), ruleType);
+    }
+
     public Long getId() {
         return id;
     }
