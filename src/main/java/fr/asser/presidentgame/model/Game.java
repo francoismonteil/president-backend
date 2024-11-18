@@ -46,7 +46,8 @@ public class Game {
 
     private int currentPlayerIndex = 0;
 
-    @Transient
+    @OneToOne(cascade = CascadeType.ALL, orphanRemoval = true)
+    @JoinColumn(name = "rule_engine_id", referencedColumnName = "id")
     private RuleEngine ruleEngine;
 
     public Game() {
@@ -411,7 +412,7 @@ public class Game {
         return playedCards.subList(playedCards.size() - count, playedCards.size());
     }
 
-    protected boolean isValidMove(List<Card> cards) {
+    public boolean isValidMove(List<Card> cards) {
         if (playedCards.isEmpty()) return true;
 
         if (cards.size() == 1) return isSingleCardMoveValid(cards);
@@ -635,7 +636,7 @@ public class Game {
     }
 
     private void generateSubsetsHelper(List<Card> cards, List<Card> currentSubset, int start, int subsetSize, List<List<Card>> subsets) {
-        if (currentSubset.size() == subsetSize) {
+        if (currentSubset.size() == subsetSize && subsetSize > 0) {
             subsets.add(new ArrayList<>(currentSubset)); // Ajouter une nouvelle combinaison valide
             return;
         }
@@ -662,6 +663,10 @@ public class Game {
 
     public void setPlayers(List<Player> players) {
         this.players = players;
+    }
+
+    public void orderPlayers() {
+        players.sort(Comparator.comparing(Player::getId));
     }
 
     public void addPlayer(Player player) {

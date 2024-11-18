@@ -56,8 +56,9 @@ public class GameController {
     @ApiResponse(responseCode = "400", description = "Invalid move")
     @ApiResponse(responseCode = "404", description = "Game or player not found")
     @PostMapping("/{gameId}/play")
-    public void playCards(@PathVariable Long gameId, @RequestParam Long playerId, @RequestBody List<Card> cards) {
-        gameService.playCards(gameId, playerId, cards);
+    public void playCards(@PathVariable Long gameId, @RequestParam Long playerId, @RequestBody List<Card> cards,
+                          @RequestParam boolean isSpecialMoveActivated) {
+        gameService.playCards(gameId, playerId, cards, isSpecialMoveActivated);
     }
 
     @Operation(summary = "Pass turn in a game")

@@ -390,9 +390,9 @@ class GameScenarioIntegrationTest {
     private void simulateTurn(int playerIndex, List<Card> cards, boolean suite) {
         Player player = game.getPlayers().get(playerIndex);
         if (cards == null) {
-            game.passTurn(player.getId());
+            game = gameService.passTurn(game.getId(), player.getId());
         } else {
-            game.playCards(player.getId(), cards, suite);
+            game = gameService.playCards(game.getId(), player.getId(), cards, suite);
         }
         gameService.saveGame(game);
     }

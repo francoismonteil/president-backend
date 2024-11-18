@@ -19,7 +19,7 @@ public class GameWebSocketController {
     @MessageMapping("/playCard")
     @SendTo("/topic/gameState")
     public Game playCard(GameMove gameMove) {
-        gameService.playCards(gameMove.getGameId(), gameMove.getPlayerId(), gameMove.getCards());
+        gameService.playCards(gameMove.getGameId(), gameMove.getPlayerId(), gameMove.getCards(), gameMove.isSpecialMoveActivated());
         return gameService.getGame(gameMove.getGameId());
     }
 

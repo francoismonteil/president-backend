@@ -124,7 +124,7 @@ class GameServiceTest {
         when(gameRepository.save(any(Game.class))).thenReturn(game);
 
         // Act
-        gameService.playCards(1L, player.getId(), List.of(new Card("Hearts", "3")));
+        gameService.playCards(1L, player.getId(), List.of(new Card("Hearts", "3")), false);
 
         // Assert
         verify(gameRepository, times(1)).save(game);
@@ -144,7 +144,7 @@ class GameServiceTest {
         when(gameRepository.save(any(Game.class))).thenReturn(game);
 
         InvalidMoveException exception = assertThrows(InvalidMoveException.class, () -> {
-            gameService.playCards(1L, player.getId(), List.of(new Card("Hearts", "3")));
+            gameService.playCards(1L, player.getId(), List.of(new Card("Hearts", "3")), false);
         });
 
         assertEquals("Player does not have card Card{suit='Hearts', rank='3'} in hand", exception.getMessage());
@@ -219,7 +219,7 @@ class GameServiceTest {
 
         // Act & Assert
         IllegalStateException exception = assertThrows(IllegalStateException.class, () -> {
-            gameService.playCards(1L, player.getId(), List.of(new Card("Hearts", "3")));
+            gameService.playCards(1L, player.getId(), List.of(new Card("Hearts", "3")), false);
         });
 
         assertEquals("Authentication principal is not a UserDetails instance", exception.getMessage());

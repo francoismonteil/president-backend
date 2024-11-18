@@ -6,6 +6,7 @@ public class GameMove {
     private Long gameId;
     private Long playerId;
     private List<Card> cards;
+    private boolean isSpecialMoveActivated;
 
     public Long getGameId() {
         return gameId;
@@ -29,5 +30,13 @@ public class GameMove {
 
     public void setCards(List<Card> cards) {
         this.cards = cards;
+    }
+
+    public boolean isSpecialMoveActivated() {
+        return isSpecialMoveActivated;
+    }
+
+    public void setSpecialMoveActivated(boolean specialMoveActivated) {
+        isSpecialMoveActivated = specialMoveActivated;
     }
 }

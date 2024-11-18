@@ -1,6 +1,7 @@
 package fr.asser.presidentgame.model;
 
 import com.fasterxml.jackson.annotation.JsonBackReference;
+import fr.asser.presidentgame.ai.GameAI;
 import fr.asser.presidentgame.exception.InvalidMoveException;
 import jakarta.persistence.*;
 
@@ -17,11 +18,16 @@ public class Player {
 
     private String name;
 
+    private boolean isAI;
+
+    @Transient
+    private GameAI ai;
+
     @OneToMany(cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.EAGER)
     @JoinColumn(name = "player_id")
     private List<Card> hand = new ArrayList<>();
 
-    @Transient
+    @OneToMany(cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.EAGER)
     private List<Card> playedCards = new ArrayList<>();
 
     @ManyToOne
@@ -41,6 +47,14 @@ public class Player {
         this.name = name;
         this.hasPassed = false;
         this.canPlayInCurrentPli = true;
+    }
+
+    public Player(String name, boolean isAI, GameAI ai) {
+        this.name = name;
+        this.hasPassed = false;
+        this.canPlayInCurrentPli = true;
+        this.isAI = isAI;
+        this.ai = ai;
     }
 
     public Long getId() {
@@ -136,5 +150,21 @@ public class Player {
         this.hand.clear(); // Supprimer toutes les cartes de la main du joueur
         this.playedCards.clear(); // Vider les cartes jouées pour la manche précédente
         resetForNewPli();
+    }
+
+    public boolean isAI() {
+        return isAI;
+    }
+
+    public void setAI(boolean AI) {
+        isAI = AI;
+    }
+
+    public GameAI getAI() {
+        return ai;
+    }
+
+    public void setAI(GameAI ai) {
+        this.ai = ai;
     }
 }

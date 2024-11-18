@@ -3,10 +3,18 @@ package fr.asser.presidentgame.rules;
 import fr.asser.presidentgame.exception.InvalidMoveException;
 import fr.asser.presidentgame.model.Card;
 import fr.asser.presidentgame.model.RuleType;
+import jakarta.persistence.Entity;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
 
 import java.util.List;
 
+@Entity
 public class RuleEngine {
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
 
     private boolean suiteActive = false;
     private String activeSuiteRank = null;
@@ -149,6 +157,14 @@ public class RuleEngine {
         } else if (cards.size() != currentMoveSize) {
             throw new InvalidMoveException("All players must play the same number of cards.");
         }
+    }
+
+    public Long getId() {
+        return id;
+    }
+
+    public void setId(Long id) {
+        this.id = id;
     }
 
     public boolean isRevolutionActive() {

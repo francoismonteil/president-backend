@@ -1,7 +1,6 @@
 package fr.asser.presidentgame.service;
 
 import fr.asser.presidentgame.exception.GameNotFoundException;
-import fr.asser.presidentgame.exception.NotPlayersTurnException;
 import fr.asser.presidentgame.model.*;
 import fr.asser.presidentgame.repository.AppUserRepository;
 import fr.asser.presidentgame.repository.GameLogRepository;
@@ -40,6 +39,7 @@ public class GameService {
     public Game getGame(Long gameId) {
         Game game = gameRepository.findByIdWithRanks(gameId).orElseThrow(() -> new GameNotFoundException(gameId));
         game.getPlayers().size(); // Charger les joueurs pour éviter LazyInitializationException
+        game.orderPlayers();
 
         return game;
     }
@@ -72,22 +72,24 @@ public class GameService {
         return updatedGame;
     }
 
-    public void playCards(Long gameId, Long playerId, List<Card> cards) {
+    public Game playCards(Long gameId, Long playerId, List<Card> cards, boolean isSpecialRuleActivated) {
         Game game = getGame(gameId);
-        validateGameAndPlayerAccess(game, playerId); // Validation consolidée
-        game.playCards(playerId, cards, false);
+        game.playCards(playerId, cards, isSpecialRuleActivated);
         Game updatedGame = gameRepository.save(game);
         messagingTemplate.convertAndSend("/topic/gameState", updatedGame);
         logGameAction(gameId, playerId, "Played cards: " + cards); // Log centralisé
+
+        return updatedGame;
     }
 
-    public void passTurn(Long gameId, Long playerId) {
+    public Game passTurn(Long gameId, Long playerId) {
         Game game = getGame(gameId);
-        validateGameAndPlayerAccess(game, playerId); // Validation consolidée
         game.passTurn(playerId);
         Game updatedGame = gameRepository.save(game);
         messagingTemplate.convertAndSend("/topic/gameState", updatedGame);
         logGameAction(gameId, playerId, "Passed turn"); // Log centralisé
+
+        return updatedGame;
     }
 
     public void saveGame(Long id) {
@@ -107,14 +109,6 @@ public class GameService {
 
     public Set<Game> loadSavedGames() {
         return gameRepository.findAllByIsSaved(true);
-    }
-
-    // Nouvelle méthode pour valider l'accès au jeu et au joueur
-    private void validateGameAndPlayerAccess(Game game, Long playerId) {
-        validateUserAccess(game);
-        if (!game.getPlayers().get(game.getCurrentPlayerIndex()).getId().equals(playerId)) {
-            throw new NotPlayersTurnException(playerId);
-        }
     }
 
     // Validation de l'accès utilisateur au jeu
