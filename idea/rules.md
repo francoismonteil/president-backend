@@ -171,21 +171,23 @@ Possibilité de choisir le niveau de difficulté des IA (facile, moyen, difficil
 **Activation de la Suite :**
 - Un joueur peut activer la suite s'il est le deuxième à jouer lors d'un pli.
 - Pour activer la suite, il doit :
-    - Jouer une carte consécutive à celle jouée par le premier joueur.
-    - Exprimer sa volonté de jouer une suite (par exemple, en le déclarant verbalement ou via un bouton dédié dans le jeu en ligne).
+    - Jouer une carte consécutive à celle jouée par le premier joueur (selon l'ordre hiérarchique en cours, normal ou inversé).
+    - Exprimer sa volonté de jouer une suite (via un bouton dédié en ligne ou verbalement).
 
 **Effet de la Suite :**
-- Les joueurs suivants doivent jouer une ou plusieurs cartes qui font suite directement à la dernière carte posée.
-    - **Exemples :**
-        - Si le premier joueur joue un 6 et que le deuxième joueur active la suite en jouant un 7, les joueurs suivants doivent jouer un 8, puis un 9, etc.
-        - Si un joueur joue deux 8, le joueur suivant doit jouer deux 9.
+- Les joueurs suivants doivent jouer une ou plusieurs cartes directement consécutives à la dernière carte posée, selon la hiérarchie en cours :
+  - Hiérarchie normale : 3, 4, ..., 10, J, Q, K, A, 2. 
+  - Hiérarchie inversée (Révolution) : 3, 2, A, K, Q, J, ..., 4.
+  - **Exemples :**
+      - Si le premier joueur joue un 6 et que le deuxième joueur active la suite en jouant un 7, les joueurs suivants doivent jouer un 8, puis un 9, etc.
+      - Si un joueur joue deux 8, le joueur suivant doit jouer deux 9.
 
 **Sortir de la Suite :**
 - Si un joueur ne peut pas suivre la suite, il doit passer.
 - Si un joueur peut suivre la suite, il est obligé de jouer.
 - La suite se termine lorsque :
     - Tous les joueurs ont passé consécutivement.
-    - La carte de valeur maximum a été jouée (l'As en ordre normal, le 3 en cas de révolution).
+    - La carte de valeur maximum a été jouée (le 2 en ordre normal, le 3 en cas de révolution).
 - Le dernier joueur à avoir posé une carte lors de la suite entame le nouveau pli avec la carte ou la combinaison de son choix.
 
 ### 4.2 Le Reverse
@@ -193,17 +195,20 @@ Possibilité de choisir le niveau de difficulté des IA (facile, moyen, difficil
 **Activation du Reverse :**
 - Un joueur peut activer le reverse s'il est le deuxième à jouer lors d'un pli.
 - Pour activer le reverse, il doit :
-    - Jouer une carte inversement consécutive à celle jouée par le premier joueur (une carte de rang immédiatement inférieur).
+    - Jouer une carte inversement consécutive à celle jouée par le premier joueur (une carte de rang immédiatement inférieur selon l’ordre en cours).
     - Exprimer sa volonté de jouer un reverse.
 
 **Effet du Reverse :**
-- Les joueurs suivants doivent jouer une ou plusieurs cartes qui font inversement suite directement à la dernière carte posée.
-    - **Exemples :**
-        - Si le premier joueur joue un 6 et que le deuxième joueur active le reverse en jouant un 5, les joueurs suivants doivent jouer un 4, puis un 3, etc.
-        - Si un joueur joue deux 8, le joueur suivant doit jouer deux 7.
+- Les joueurs suivants doivent jouer une ou plusieurs cartes inversement consécutives à la dernière carte posée, selon la hiérarchie en cours.
+  - Hiérarchie normale : Si un 9 est joué, le suivant doit jouer un 8. 
+  - Hiérarchie inversée (Révolution) : Si un 4 est joué, le suivant doit jouer un 5.
+  - **Exemples :**
+      - Si le premier joueur joue un 6 et que le deuxième joueur active le reverse en jouant un 5, les joueurs suivants doivent jouer un 4, puis un 3, etc.
+      - Si un joueur joue deux 8, le joueur suivant doit jouer deux 7.
 
 **Fin du Reverse :**
 - L’effet du reverse s’applique uniquement au pli en cours et revient à l’ordre normal lors du suivant.
+- À la fin du pli, l’ordre redevient celui en cours (normal ou inversé, selon la révolution).
 - Si un joueur se retrouve le dernier à pouvoir jouer, il est libre de continuer le reverse ou de terminer le pli en cours.
 
 ### 4.3 Terminer un Pli en Dehors de son Tour
@@ -259,7 +264,9 @@ Possibilité de choisir le niveau de difficulté des IA (facile, moyen, difficil
 ### 4.7 La Révolution
 
 **Activation de la Révolution :**
-- La révolution est déclenchée lorsqu'un joueur joue quatre cartes de même rang (un carré), par exemple quatre 9.
+- La révolution est déclenchée lorsqu’un joueur joue un carré (quatre cartes de même rang).
+- L’ordre des cartes est inversé pour toute la manche.
+  - Hiérarchie inversée : 3 (le plus fort), 4, 5, ..., 10, J, Q, K, A, 2 (le plus faible).
 
 **Effet de la Révolution :**
 - La force des cartes est complètement inversée :
@@ -270,21 +277,37 @@ Possibilité de choisir le niveau de difficulté des IA (facile, moyen, difficil
     - **Exception :** Si un joueur termine la partie en jouant un 3, il devient automatiquement le Trouduc pour la prochaine manche.
 - L'ordre inversé reste en place pour le reste de la manche, sauf si une contre-révolution est déclenchée.
 
+**Effet sur les Autres Règles Spéciales :**
+- Suite : La suite suit l’ordre inversé (ex. après un 6, le joueur doit jouer un 5).
+- Reverse : Le reverse peut inverser temporairement l’ordre, mais respecte l’inversion globale de la révolution.
+- Ou-Rien : Les joueurs doivent jouer une carte du rang indiqué, selon la hiérarchie inversée.
+
 **Contre-Révolution :**
-- Une contre-révolution peut être déclenchée si un autre joueur joue un autre carré (quatre cartes de même rang).
-- Cela rétablit l'ordre normal des cartes.
+- Un autre carré peut être joué, lors d'un autre pli, pour rétablir l’ordre normal des cartes.
+- Une contre-révolution annule immédiatement les effets inversés de la révolution.
 
 ### 4.8 Interactions entre Règles Spéciales
 
-**Cumul des Effets :**
-- Les règles spéciales peuvent être actives simultanément.
-    - Par exemple, une révolution peut être en cours en même temps qu'un reverse.
+Pour éviter toute confusion, voici un tableau des priorités et effets des règles spéciales :
 
-**Priorité des Règles :**
-1. **Révolution** : Modifie la hiérarchie des cartes pour toute la manche ou jusqu'à une contre-révolution.
-2. **Reverse** : Inverse l'ordre des cartes pour le pli en cours.
-3. **Suite** : Affecte uniquement le pli en cours.
-4. **Ou-Rien** : Affecte les joueurs jusqu'à ce qu'un joueur passe.
+| Règle      | Portée                | Effet                                     | Priorité |
+|:-----------|:----------------------|:------------------------------------------|:---------|
+| Révolution | Toute la manche       | Inverse la hiérarchie des cartes          | 1        |
+| Reverse    | Pli en cours          | Inverse temporairement l’ordre des cartes | 2        |
+| Suite      | Pli en cours          | Implique de jouer des cartes consécutives | 3        |
+| Ou-Rien    | Jusqu’à désactivation | Contraint à un rang précis                | 4        |
+
+**Règles de Résolution des Conflits**
+- Révolution > Toutes les autres règles : Si la révolution est active, elle modifie la hiérarchie globale des cartes, affectant la suite, le reverse et le ou-rien.
+- Reverse > Suite : Si un reverse est activé pendant une suite, l’ordre inverse prend le pas sur l’ordre consécutif imposé par la suite.
+- Suite et Ou-Rien : Le ou-rien suit l’ordre consécutif si une suite est active.
+
+**Exemple d’Interaction Complexe**
+- Une révolution est active, inversant l’ordre des cartes.
+- Joueur A joue un 6 (dans l’ordre inversé).
+- Joueur B active une suite en jouant un 5 (selon la hiérarchie inversée).
+- Joueur C active un reverse en jouant un 4 (dans l’ordre inversé).
+- Joueur D doit jouer un 5 (selon le reverse actif, mais dans l’ordre inversé).
 
 ## 5. Exemples de Scénarios
 
