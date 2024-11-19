@@ -21,6 +21,11 @@ public class SecurityConfig {
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http.csrf(AbstractHttpConfigurer::disable)
                 .authorizeHttpRequests(authorize -> authorize
+                        .requestMatchers(
+                                "/v3/api-docs/**", // OpenAPI docs
+                                "/swagger-ui/**",  // Swagger UI resources
+                                "/swagger-ui.html" // Swagger entry point
+                        ).permitAll() // Autoriser Swagger
                         .requestMatchers("/api/auth/**").permitAll() // Auth routes are public
                         .requestMatchers("/api/games/**").permitAll() // Games routes require authentication
                         .anyRequest().denyAll()) // Deny all other routes by default
