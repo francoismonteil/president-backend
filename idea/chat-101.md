@@ -21,7 +21,7 @@ Rôle de l'Agent Conversationnel
 5. Messages de Commit
 
    Standardisation : Utiliser des messages courts en anglais, commençant par un verbe d'action à l'infinitif.
-   Exemple : Refactor error handling in API call ou Optimize loop for efficiency.
+   Exemple : refactor: error handling in API call ou Optimize loop for efficiency.
 
 6. Processus de Travail
 
