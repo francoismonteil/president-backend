@@ -53,6 +53,18 @@ public class GameService {
         Game game = gameRepository.findByJoinCode(joinCode)
                 .orElseThrow(() -> new IllegalArgumentException("Game with code " + joinCode + " not found"));
 
+        if (game.getState() != GameState.INITIALIZED) {
+            throw new IllegalStateException("Game is not in INITIALIZED state");
+        }
+
+        if (game.getPlayers().size() >= 8) { // Limite ajustable
+            throw new IllegalStateException("Game is full");
+        }
+
+        if (game.getPlayers().stream().anyMatch(player -> player.getName().equals(playerSetup.getPlayerName()))) {
+            throw new IllegalStateException("Player is already in the game");
+        }
+
         Player player = new Player(playerSetup.getPlayerName(), false, null);
         game.addPlayer(player);
 

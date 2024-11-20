@@ -229,6 +229,7 @@ class GameServiceTest {
     void testJoinGame_Success() {
         Game game = new Game();
         game.setJoinCode("ABCD1234");
+        game.setState(GameState.INITIALIZED);
         when(gameRepository.findByJoinCode("ABCD1234")).thenReturn(Optional.of(game));
         when(gameRepository.save(any(Game.class))).thenAnswer(invocation -> invocation.getArgument(0));
 
@@ -249,4 +250,42 @@ class GameServiceTest {
             gameService.joinGame("INVALIDCODE", playerSetup);
         });
     }
+
+    @Test
+    void testJoinGame_GameFull() {
+        Game game = new Game();
+        game.setJoinCode("ABCD1234");
+        game.setState(GameState.INITIALIZED);
+
+        for (int i = 0; i < 10; i++) {
+            game.addPlayer(new Player("Player" + i, false, null));
+        }
+
+        when(gameRepository.findByJoinCode("ABCD1234")).thenReturn(Optional.of(game));
+        when(gameRepository.save(any(Game.class))).thenAnswer(invocation -> invocation.getArgument(0));
+
+        PlayerSetup playerSetup = new PlayerSetup("NewPlayer", null);
+
+        assertThrows(IllegalStateException.class, () -> {
+            gameService.joinGame("ABCD1234", playerSetup);
+        });
+    }
+
+    @Test
+    void testJoinGame_PlayerAlreadyJoined() {
+        Game game = new Game();
+        game.setJoinCode("ABCD1234");
+        game.setState(GameState.INITIALIZED);
+        game.addPlayer(new Player("ExistingPlayer", false, null));
+
+        when(gameRepository.findByJoinCode("ABCD1234")).thenReturn(Optional.of(game));
+        when(gameRepository.save(any(Game.class))).thenAnswer(invocation -> invocation.getArgument(0));
+
+        PlayerSetup playerSetup = new PlayerSetup("ExistingPlayer", null);
+
+        assertThrows(IllegalStateException.class, () -> {
+            gameService.joinGame("ABCD1234", playerSetup);
+        });
+    }
+
 }
