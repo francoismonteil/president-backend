@@ -6,7 +6,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import fr.asser.presidentgame.service.CustomUserDetailsService;
 
-@SpringBootApplication
+@SpringBootApplication(scanBasePackages = "fr.asser.presidentgame")
 public class Application {
 
     private final CustomUserDetailsService customUserDetailsService;

@@ -25,7 +25,9 @@ public class SecurityConfig {
                         .requestMatchers(
                                 "/v3/api-docs/**", // OpenAPI docs
                                 "/swagger-ui/**",  // Swagger UI resources
-                                "/swagger-ui.html" // Swagger entry point
+                                "/swagger-ui.html", // Swagger entry point
+                                "/ws/**",
+                                "/custom-ws/**"
                         ).permitAll() // Autoriser Swagger
                         .requestMatchers("/api/auth/**").permitAll() // Auth routes are public
                         .requestMatchers("/api/games/**").permitAll() // Games routes require authentication
