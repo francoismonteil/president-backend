@@ -41,10 +41,10 @@ class GameScenarioIntegrationTest {
 
         SecurityContextHolder.getContext().setAuthentication(authentication);
 
-        PlayerSetup player1 = new PlayerSetup("Player1", "easy");
-        PlayerSetup player2 = new PlayerSetup("Player2", "easy");
-        PlayerSetup player3 = new PlayerSetup("Player3", "easy");
-        PlayerSetup player4 = new PlayerSetup("Player4", "easy");
+        PlayerSetup player1 = new PlayerSetup("Player1", "EASY");
+        PlayerSetup player2 = new PlayerSetup("Player2", "EASY");
+        PlayerSetup player3 = new PlayerSetup("Player3", "EASY");
+        PlayerSetup player4 = new PlayerSetup("Player4", "EASY");
 
         game = gameService.createGame(List.of(player1, player2, player3, player4));
         gameService.saveGame(game);

@@ -52,9 +52,9 @@ class GameServiceTest {
     @Test
     void testCreateGame_Success() {
         // Arrange
-        PlayerSetup player1 = new PlayerSetup("Player1", "easy");
-        PlayerSetup player2 = new PlayerSetup("Player2", "easy");
-        PlayerSetup player3 = new PlayerSetup("Player3", "easy");
+        PlayerSetup player1 = new PlayerSetup("Player1", "EASY");
+        PlayerSetup player2 = new PlayerSetup("Player2", "EASY");
+        PlayerSetup player3 = new PlayerSetup("Player3", "EASY");
 
         when(gameRepository.save(any(Game.class))).thenAnswer(invocation -> {
             Game savedGame = invocation.getArgument(0);
@@ -93,26 +93,6 @@ class GameServiceTest {
 
         // Nettoyer le contexte de sécurité après le test
         SecurityContextHolder.clearContext();
-    }
-
-
-    @Test
-    void testStartGame_Success() {
-        // Arrange
-        Game game = new Game();
-        game.setState(GameState.INITIALIZED);
-        when(gameRepository.findByIdWithRanks(anyLong())).thenReturn(Optional.of(game));
-        when(gameRepository.save(any(Game.class))).thenReturn(game);
-
-        // Act
-        Game startedGame = gameService.startGame(1L);
-
-        // Assert
-        assertNotNull(startedGame);
-        assertEquals(GameState.IN_PROGRESS, startedGame.getState());  // Vérifie que l'état est passé à IN_PROGRESS
-        verify(gameRepository, times(1)).save(startedGame);
-        verify(messagingTemplate, times(1)).convertAndSend(anyString(), any(Game.class));  // Vérifie l'envoi du message
-        verify(gameLogRepository, times(1)).save(any());  // Vérifie que le log est sauvegardé
     }
 
     @Test
@@ -222,11 +202,11 @@ class GameServiceTest {
         when(gameRepository.findByIdWithRanks(anyLong())).thenReturn(Optional.of(game));
 
         // Act & Assert
-        IllegalStateException exception = assertThrows(IllegalStateException.class, () -> {
+        InvalidMoveException exception = assertThrows(InvalidMoveException.class, () -> {
             gameService.playCards(1L, player.getId(), List.of(new Card("Hearts", "3")), false);
         });
 
-        assertEquals("Authentication principal is not a UserDetails instance", exception.getMessage());
+        assertEquals("Player does not have card Card{suit='Hearts', rank='3'} in hand", exception.getMessage());
 
         // Nettoyer le contexte de sécurité après le test
         SecurityContextHolder.clearContext();

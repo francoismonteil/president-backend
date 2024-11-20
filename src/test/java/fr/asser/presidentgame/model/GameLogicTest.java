@@ -1,6 +1,7 @@
 package fr.asser.presidentgame.model;
 
 import fr.asser.presidentgame.exception.InvalidMoveException;
+import fr.asser.presidentgame.exception.NotPlayersTurnException;
 import static org.junit.jupiter.api.Assertions.*;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -123,11 +124,11 @@ class GameLogicTest {
         game.getPlayers().add(player2);
         game.setState(GameState.IN_PROGRESS);
 
-        IllegalStateException exception = assertThrows(IllegalStateException.class, () -> {
+        NotPlayersTurnException exception = assertThrows(NotPlayersTurnException.class, () -> {
             game.playCards(2L, List.of(new Card("Hearts", "3")), false);
         });
 
-        assertEquals("Not this player's turn", exception.getMessage());
+        assertEquals("It's not player 2's turn.", exception.getMessage());
     }
 
     @Test
@@ -141,11 +142,11 @@ class GameLogicTest {
         game.getPlayers().add(player2);
         game.setState(GameState.IN_PROGRESS);
 
-        IllegalStateException exception = assertThrows(IllegalStateException.class, () -> {
+        NotPlayersTurnException exception = assertThrows(NotPlayersTurnException.class, () -> {
             game.passTurn(2L);
         });
 
-        assertEquals("Not this player's turn", exception.getMessage());
+        assertEquals("It's not player 2's turn.", exception.getMessage());
     }
 
     @Test
