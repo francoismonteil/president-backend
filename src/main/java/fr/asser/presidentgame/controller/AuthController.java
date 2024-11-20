@@ -3,6 +3,7 @@ package fr.asser.presidentgame.controller;
 import fr.asser.presidentgame.model.AppUser;
 import fr.asser.presidentgame.service.AppUserService;
 import fr.asser.presidentgame.service.CustomUserDetailsService;
+import fr.asser.presidentgame.util.JwtUtil;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import org.springframework.context.MessageSource;
@@ -24,13 +25,15 @@ public class AuthController {
     private final AppUserService appUserService;
     private final PasswordEncoder passwordEncoder;
     private final MessageSource messageSource;
+    private final JwtUtil jwtUtil;
 
     public AuthController(CustomUserDetailsService customUserDetailsService, AppUserService appUserService,
-                          PasswordEncoder passwordEncoder, MessageSource messageSource) {
+                          PasswordEncoder passwordEncoder, MessageSource messageSource, JwtUtil jwtUtil) {
         this.customUserDetailsService = customUserDetailsService;
         this.appUserService = appUserService;
         this.passwordEncoder = passwordEncoder;
         this.messageSource = messageSource;
+        this.jwtUtil = jwtUtil;
     }
 
     @Operation(summary = "Register a new user")
@@ -53,8 +56,11 @@ public class AuthController {
     public ResponseEntity<String> login(@RequestBody AppUser user, Locale locale) {
         UserDetails userDetails = customUserDetailsService.loadUserByUsername(user.getUsername());
         if (userDetails == null || !passwordEncoder.matches(user.getPassword(), userDetails.getPassword())) {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(messageSource.getMessage("invalid.credentials", null, locale));
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(
+                    messageSource.getMessage("invalid.credentials", null, locale));
         }
-        return ResponseEntity.ok(messageSource.getMessage("user.logged", null, locale));
+        String jwtToken = jwtUtil.generateToken(userDetails);
+        return ResponseEntity.ok(jwtToken);
     }
+
 }
