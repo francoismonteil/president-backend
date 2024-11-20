@@ -51,6 +51,9 @@ public class Game {
     @JoinColumn(name = "rule_engine_id", referencedColumnName = "id")
     private RuleEngine ruleEngine;
 
+    @Column(unique = true, nullable = false)
+    private String joinCode;
+
     public Game() {
         initializeDeck();
         this.players = new ArrayList<>();
@@ -743,5 +746,13 @@ public class Game {
 
     public void setSaved(Boolean saved) {
         isSaved = saved;
+    }
+
+    public String getJoinCode() {
+        return joinCode;
+    }
+
+    public void setJoinCode(String joinCode) {
+        this.joinCode = joinCode;
     }
 }

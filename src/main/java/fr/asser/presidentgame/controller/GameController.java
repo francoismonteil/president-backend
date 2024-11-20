@@ -52,6 +52,14 @@ public class GameController {
         return gameService.startGame(id);
     }
 
+    @Operation(summary = "Join a game using a join code")
+    @ApiResponse(responseCode = "200", description = "Joined game successfully")
+    @ApiResponse(responseCode = "404", description = "Game not found")
+    @PostMapping("/join")
+    public ResponseEntity<Game> joinGame(@RequestParam String joinCode, @RequestBody PlayerSetup playerSetup) {
+        return ResponseEntity.ok(gameService.joinGame(joinCode, playerSetup));
+    }
+
     @Operation(summary = "Play cards in a game")
     @ApiResponse(responseCode = "200", description = "Cards played")
     @ApiResponse(responseCode = "400", description = "Invalid move")

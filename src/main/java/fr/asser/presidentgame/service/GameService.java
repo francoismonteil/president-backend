@@ -16,6 +16,7 @@ import org.springframework.util.CollectionUtils;
 
 import java.util.List;
 import java.util.Set;
+import java.util.UUID;
 
 @Service
 public class GameService {
@@ -31,15 +32,29 @@ public class GameService {
         this.messagingTemplate = messagingTemplate;
     }
 
+    String generateJoinCode() {
+        return UUID.randomUUID().toString().substring(0, 8).toUpperCase();
+    }
+
     public Game createGame(List<PlayerSetup> playerSetups) {
         Game game = new Game();
 
         for (PlayerSetup setup : playerSetups) {
             var isAI = setup.getAiType() != null;
-            Player player = new Player(setup.getPlayerName(), isAI, AIType.valueOf(setup.getAiType()));
-
+            Player player = new Player(setup.getPlayerName(), isAI, isAI ? AIType.valueOf(setup.getAiType()): null);
             game.addPlayer(player);
         }
+
+        game.setJoinCode(generateJoinCode());
+        return gameRepository.save(game);
+    }
+
+    public Game joinGame(String joinCode, PlayerSetup playerSetup) {
+        Game game = gameRepository.findByJoinCode(joinCode)
+                .orElseThrow(() -> new IllegalArgumentException("Game with code " + joinCode + " not found"));
+
+        Player player = new Player(playerSetup.getPlayerName(), false, null);
+        game.addPlayer(player);
 
         return gameRepository.save(game);
     }

@@ -17,6 +17,7 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.User;
 
+import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
@@ -212,4 +213,40 @@ class GameServiceTest {
         SecurityContextHolder.clearContext();
     }
 
+    @Test
+    void testGenerateJoinCode_Unique() {
+        Set<String> generatedCodes = new HashSet<>();
+        for (int i = 0; i < 100; i++) {
+            String code = gameService.generateJoinCode();
+            assertNotNull(code);
+            assertEquals(8, code.length());
+            generatedCodes.add(code);
+        }
+        assertEquals(100, generatedCodes.size()); // Vérifie que les codes sont uniques
+    }
+
+    @Test
+    void testJoinGame_Success() {
+        Game game = new Game();
+        game.setJoinCode("ABCD1234");
+        when(gameRepository.findByJoinCode("ABCD1234")).thenReturn(Optional.of(game));
+        when(gameRepository.save(any(Game.class))).thenAnswer(invocation -> invocation.getArgument(0));
+
+        PlayerSetup playerSetup = new PlayerSetup("NewPlayer", null);
+
+        Game updatedGame = gameService.joinGame("ABCD1234", playerSetup);
+
+        assertNotNull(updatedGame);
+        assertEquals(1, updatedGame.getPlayers().size());
+        assertEquals("NewPlayer", updatedGame.getPlayers().get(0).getName());
+    }
+
+    @Test
+    void testJoinGame_InvalidCode() {
+        PlayerSetup playerSetup = new PlayerSetup("NewPlayer", null);
+
+        assertThrows(IllegalArgumentException.class, () -> {
+            gameService.joinGame("INVALIDCODE", playerSetup);
+        });
+    }
 }
