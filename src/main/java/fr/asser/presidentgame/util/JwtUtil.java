@@ -14,9 +14,11 @@ import java.util.Map;
 @Component
 public class JwtUtil {
     private final String secretKey;
+    private final long jwtExpiration;
 
-    public JwtUtil(@Value("${jwt.secret}") String secretKey) {
+    public JwtUtil(@Value("${jwt.secret}") String secretKey, @Value("${jwt.expiration}") long jwtExpiration) {
         this.secretKey = secretKey;
+        this.jwtExpiration = jwtExpiration;
     }
 
     public String extractUsername(String token) {
@@ -24,7 +26,10 @@ public class JwtUtil {
     }
 
     public Claims extractClaims(String token) {
-        return Jwts.parser().setSigningKey(secretKey).parseClaimsJws(token).getBody();
+        return Jwts.parser()
+                .setSigningKey(secretKey.getBytes()) // La même clé que pour la génération
+                .parseClaimsJws(token)
+                .getBody();
     }
 
     public String generateToken(UserDetails userDetails) {
@@ -33,9 +38,9 @@ public class JwtUtil {
         return Jwts.builder()
                 .setClaims(claims)
                 .setSubject(userDetails.getUsername())
-                .setIssuedAt(new Date(System.currentTimeMillis()))
-                .setExpiration(new Date(System.currentTimeMillis() + 1000 * 60 * 60 * 10)) // 10 heures
-                .signWith(SignatureAlgorithm.HS256, secretKey)
+                .setIssuedAt(new Date())
+                .setExpiration(new Date(System.currentTimeMillis() + jwtExpiration))
+                .signWith(SignatureAlgorithm.HS256, secretKey.getBytes()) // Assurez-vous d'utiliser getBytes()
                 .compact();
     }
 
