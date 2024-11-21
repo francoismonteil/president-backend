@@ -258,6 +258,57 @@
         }
       }
     },
+    "/api/games/join": {
+      "post": {
+        "tags": [
+          "game-controller"
+        ],
+        "summary": "Join a game using a join code",
+        "operationId": "joinGame",
+        "parameters": [
+          {
+            "name": "joinCode",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PlayerSetup"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "404": {
+            "description": "Game not found",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/Game"
+                }
+              }
+            }
+          },
+          "200": {
+            "description": "Joined game successfully",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/Game"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/auth/register": {
       "post": {
         "tags": [
@@ -333,6 +384,26 @@
               "*/*": {
                 "schema": {
                   "type": "string"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/users/me": {
+      "get": {
+        "tags": [
+          "app-user-controller"
+        ],
+        "operationId": "getCurrentUser",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/UserResponse"
                 }
               }
             }
@@ -575,6 +646,9 @@
           "ruleEngine": {
             "$ref": "#/components/schemas/RuleEngine"
           },
+          "joinCode": {
+            "type": "string"
+          },
           "saved": {
             "type": "boolean"
           }
@@ -702,6 +776,31 @@
           },
           "specialMoveActivated": {
             "type": "boolean"
+          }
+        }
+      },
+      "UserResponse": {
+        "type": "object",
+        "properties": {
+          "username": {
+            "type": "string"
+          },
+          "avatarUrl": {
+            "type": "string"
+          },
+          "gamesPlayed": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "gamesWon": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "roles": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
           }
         }
       }

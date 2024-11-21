@@ -31,6 +31,7 @@ public class SecurityConfig {
                         ).permitAll() // Autoriser Swagger
                         .requestMatchers("/api/auth/**").permitAll() // Auth routes are public
                         .requestMatchers("/api/games/**").permitAll() // Games routes require authentication
+                        .requestMatchers("/api/users/**").permitAll() // Users routes require authentication
                         .anyRequest().denyAll()) // Deny all other routes by default
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .addFilterBefore(jwtRequestFilter, UsernamePasswordAuthenticationFilter.class);

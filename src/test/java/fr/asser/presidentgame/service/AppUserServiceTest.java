@@ -1,5 +1,6 @@
 package fr.asser.presidentgame.service;
 
+import fr.asser.presidentgame.dto.UserResponse;
 import fr.asser.presidentgame.model.AppUser;
 import fr.asser.presidentgame.model.Role;
 import fr.asser.presidentgame.repository.AppUserRepository;
@@ -126,4 +127,25 @@ class AppUserServiceTest {
         verify(appUserRepository, times(1)).save(user);
     }
 
+    @Test
+    void testGetCurrentUserInfo() {
+        // Préparer les données mock
+        Set<Role> roles = Set.of(new Role("USER"), new Role("ADMIN"));
+        AppUser user = new AppUser("john_doe", "password123", roles);
+        user.setAvatarUrl("http://example.com/avatar.jpg");
+        user.setGamesPlayed(10);
+        user.setGamesWon(5);
+
+        when(appUserRepository.findByUsername("john_doe")).thenReturn(Optional.of(user));
+
+        // Appeler la méthode
+        UserResponse response = appUserService.getCurrentUserInfo("john_doe");
+
+        // Vérifications
+        assertEquals("john_doe", response.getUsername());
+        assertEquals("http://example.com/avatar.jpg", response.getAvatarUrl());
+        assertEquals(10, response.getGamesPlayed());
+        assertEquals(5, response.getGamesWon());
+        assertNotNull(response.getRoles());
+    }
 }

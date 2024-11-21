@@ -1,9 +1,11 @@
 package fr.asser.presidentgame.service;
 
+import fr.asser.presidentgame.dto.UserResponse;
 import fr.asser.presidentgame.model.AppUser;
 import fr.asser.presidentgame.model.Role;
 import fr.asser.presidentgame.repository.AppUserRepository;
 import fr.asser.presidentgame.repository.RoleRepository;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -45,5 +47,18 @@ public class AppUserService {
         Role role = roleRepository.findByName(roleName).orElseThrow(() -> new IllegalArgumentException("Role not found"));
         user.getRoles().add(role);
         appUserRepository.save(user);
+    }
+
+    public UserResponse getCurrentUserInfo(String username) {
+        AppUser user = appUserRepository.findByUsername(username)
+                .orElseThrow(() -> new UsernameNotFoundException("User not found"));
+
+        return new UserResponse(
+                user.getUsername(),
+                user.getAvatarUrl(),
+                user.getGamesPlayed(),
+                user.getGamesWon(),
+                user.getRoles().stream().map(Role::getName).toList()
+        );
     }
 }
