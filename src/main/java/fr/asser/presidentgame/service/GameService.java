@@ -84,7 +84,7 @@ public class GameService {
 //        validateUserAccess(game);
         game.startGame();
         Game updatedGame = gameRepository.save(game);
-        messagingTemplate.convertAndSend("/topic/gameState", updatedGame);
+        messagingTemplate.convertAndSend("/topic/game/" + id, updatedGame);
 //        logGameAction(game.getId(), getCurrentUser().getId(), "Game started");
         return updatedGame;
     }
@@ -101,7 +101,7 @@ public class GameService {
         game.resetForNewRound();
 
         Game updatedGame = gameRepository.save(game);
-        messagingTemplate.convertAndSend("/topic/gameState", updatedGame);
+        messagingTemplate.convertAndSend("/topic/game/" + gameId, updatedGame);
 //        logGameAction(gameId, getCurrentUser().getId(), "Game restarted for a new round");
 
         return updatedGame;
@@ -111,7 +111,7 @@ public class GameService {
         Game game = getGame(gameId);
         game.playCards(playerId, cards, isSpecialRuleActivated);
         Game updatedGame = gameRepository.save(game);
-        messagingTemplate.convertAndSend("/topic/gameState", updatedGame);
+        messagingTemplate.convertAndSend("/topic/game/" + gameId, updatedGame);
         logGameAction(gameId, playerId, "Played cards: " + cards); // Log centralisé
 
         return updatedGame;
@@ -121,7 +121,7 @@ public class GameService {
         Game game = getGame(gameId);
         game.passTurn(playerId);
         Game updatedGame = gameRepository.save(game);
-        messagingTemplate.convertAndSend("/topic/gameState", updatedGame);
+        messagingTemplate.convertAndSend("/topic/game/" + gameId, updatedGame);
         logGameAction(gameId, playerId, "Passed turn"); // Log centralisé
 
         return updatedGame;
