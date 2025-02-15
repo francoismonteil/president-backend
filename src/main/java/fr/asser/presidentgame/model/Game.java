@@ -124,7 +124,7 @@ public class Game {
 
     private void applySpecialRules(boolean isSpecialRuleActivated, List<Card> cards) {
         if (isSpecialRuleActivated) {
-            ruleEngine.applySpecialRule(cards.getFirst(), getLastPlayedCard(), ruleEngine.getTurnPlayed());
+            ruleEngine.applySpecialRule(cards.get(0), getLastPlayedCard(), ruleEngine.getTurnPlayed());
         }
     }
 
@@ -155,7 +155,7 @@ public class Game {
 
     void handlePlayerFinished(Player player, List<Card> lastPlayedCards) {
         // Si la dernière carte est un 2, ce joueur devient automatiquement Trouduc
-        if (lastPlayedCards.size() == 1 && ruleEngine.getBestCard().equals(lastPlayedCards.getFirst().getRank())) {
+        if (lastPlayedCards.size() == 1 && ruleEngine.getBestCard().equals(lastPlayedCards.get(0).getRank())) {
             ranks.put(player, players.size()); // Assigner le rang de Trouduc
         } else {
             ranks.put(player, ranks.size() + 1); // Sinon, assigner un rang classique
@@ -168,7 +168,7 @@ public class Game {
 
         if (remainingPlayers.size() == 1) {
             // Le dernier joueur obtient automatiquement le rang suivant
-            ranks.put(remainingPlayers.getFirst(), ranks.size() + 1);
+            ranks.put(remainingPlayers.get(0), ranks.size() + 1);
             endGame();
         }
     }
@@ -189,7 +189,7 @@ public class Game {
 
         // Vérifier si les cartes jouées permettent de compléter les 4 cartes du pli
         long matchingCardsCount = lastPlayedCards.stream()
-                .filter(card -> card.getRank().equals(cards.getFirst().getRank()))
+                .filter(card -> card.getRank().equals(cards.get(0).getRank()))
                 .count();
 
         return matchingCardsCount + cards.size() == 4;
@@ -252,7 +252,7 @@ public class Game {
     }
 
     private void checkMoveConditions(List<Card> cards) {
-        Card firstCard = cards.getFirst();
+        Card firstCard = cards.get(0);
 
         if (ruleEngine.isForcedRankActive() && !ruleEngine.isValidMove(firstCard, RuleType.FORCED_RANK)) {
             throw new InvalidMoveException("You must play a card of rank " + ruleEngine.getCurrentRequiredRank() + " or pass.");
@@ -365,7 +365,7 @@ public class Game {
             return null;
         }
 
-        Card highestCard = lastPlayedCards.getLast();
+        Card highestCard = lastPlayedCards.get(lastPlayedCards.size() - 1);
         Player winner = null;
 
         // Parcourir les cartes et déterminer le joueur ayant joué la carte la plus forte
@@ -388,7 +388,7 @@ public class Game {
         if (cards.size() == 1) {
             if (playedCards.size() >= 2 && Card.areSameRank(getLastPlayedCards(2))) {
                 ruleEngine.setForcedRankActive(true);
-                ruleEngine.setCurrentRequiredRank(playedCards.getLast().getRank());
+                ruleEngine.setCurrentRequiredRank(playedCards.get(playedCards.size() - 1).getRank());
             } else {
                 ruleEngine.setForcedRankActive(false);
                 ruleEngine.setCurrentRequiredRank(null);
@@ -429,14 +429,14 @@ public class Game {
     }
 
     private boolean isSingleCardMoveValid(List<Card> cards) {
-        var gap = Card.compareRank(cards.getFirst(), getLastPlayedCard());
+        var gap = Card.compareRank(cards.get(0), getLastPlayedCard());
         return ruleEngine.isRevolutionActive()
                 ? gap <= 0 || (ruleEngine.getTurnPlayed() == 1 || ruleEngine.isReverseActive()) && gap == 1
                 : gap >= 0 || (ruleEngine.getTurnPlayed() == 1 || ruleEngine.isSuiteActive()) && gap == -1;
     }
 
     private boolean isSameRankMove(List<Card> cards) {
-        var gap = Card.compareRank(cards.getFirst(), getLastPlayedCards(cards.size()).getFirst());
+        var gap = Card.compareRank(cards.get(0), getLastPlayedCards(cards.size()).get(0));
         return ruleEngine.isRevolutionActive()
                 ? gap <= 0 || (ruleEngine.getTurnPlayed() == 1 || ruleEngine.isReverseActive()) && gap == 1
                 : gap >= 0 || (ruleEngine.getTurnPlayed() == 1 || ruleEngine.isSuiteActive()) && gap == -1;
@@ -447,11 +447,11 @@ public class Game {
         if (!Card.isSequence(lastPlayed)) {
             throw new InvalidMoveException("Last played cards are not a sequence.");
         }
-        return Card.compareRank(cards.getFirst(), lastPlayed.getFirst()) > 0;
+        return Card.compareRank(cards.get(0), lastPlayed.get(0)) > 0;
     }
 
     private Card getLastPlayedCard() {
-        return playedCards.getLast();
+        return playedCards.get(playedCards.size() - 1);
     }
 
     private boolean isFollowingSuite(List<Card> cards) {
@@ -462,16 +462,16 @@ public class Game {
         var compareRank = ruleEngine.getActiveSuiteRank() != null ? ruleEngine.getActiveSuiteRank() : getLastPlayedCard().getRank();
 
         // Vérifier que toutes les cartes ont le même rang (si une paire ou triple est en jeu)
-        String firstCardRank = cards.getFirst().getRank();
+        String firstCardRank = cards.get(0).getRank();
         boolean allSameRank = cards.stream().allMatch(card -> card.getRank().equals(firstCardRank));
 
         // Si toutes les cartes ont le même rang, on compare ce rang avec la suite en cours
         if (allSameRank) {
-            return Card.compareRank(cards.getFirst(), new Card(cards.getFirst().getSuit(), compareRank)) == 1;
+            return Card.compareRank(cards.get(0), new Card(cards.get(0).getSuit(), compareRank)) == 1;
         }
 
         // Si ce n'est pas une combinaison de même rang, vérifier que c'est une séquence
-        return Card.isSequence(cards) && cards.getFirst().getRank().equals(compareRank);
+        return Card.isSequence(cards) && cards.get(0).getRank().equals(compareRank);
     }
 
     private boolean isFollowingReverse(List<Card> cards) {
@@ -482,16 +482,16 @@ public class Game {
         var compareRank = ruleEngine.getActiveReverseRank() != null ? ruleEngine.getActiveReverseRank() : getLastPlayedCard().getRank();
 
         // Vérifier que toutes les cartes ont le même rang (si une paire ou triple est en jeu)
-        String firstCardRank = cards.getFirst().getRank();
+        String firstCardRank = cards.get(0).getRank();
         boolean allSameRank = cards.stream().allMatch(card -> card.getRank().equals(firstCardRank));
 
         // Si toutes les cartes ont le même rang, on compare ce rang avec la suite en cours
         if (allSameRank) {
-            return Card.compareRank(cards.getFirst(), new Card(cards.getFirst().getSuit(), compareRank)) == -1;
+            return Card.compareRank(cards.get(0), new Card(cards.get(0).getSuit(), compareRank)) == -1;
         }
 
         // Si ce n'est pas une combinaison de même rang, vérifier que c'est une séquence
-        return Card.isSequence(cards) && cards.getFirst().getRank().equals(compareRank);
+        return Card.isSequence(cards) && cards.get(0).getRank().equals(compareRank);
     }
 
     boolean isConsecutiveToLastPlayed(Card card) {
@@ -575,7 +575,7 @@ public class Game {
         for (List<Card> combination : possibleCombinations) {
             // Règle "Ou rien"
             if (ruleEngine.isForcedRankActive()) {
-                if (combination.getFirst().getRank().equals(ruleEngine.getCurrentRequiredRank())) {
+                if (combination.get(0).getRank().equals(ruleEngine.getCurrentRequiredRank())) {
                     playableCards.add(combination);  // Le joueur doit jouer une carte de ce rang ou passer
                 }
             }
@@ -650,7 +650,7 @@ public class Game {
         for (int i = start; i < cards.size(); i++) {
             currentSubset.add(cards.get(i));
             generateSubsetsHelper(cards, currentSubset, i + 1, subsetSize, subsets);
-            currentSubset.removeLast(); // Retirer la dernière carte pour explorer d'autres combinaisons
+            currentSubset.remove(currentSubset.size() - 1); // Retirer la dernière carte pour explorer d'autres combinaisons
         }
     }
 

@@ -139,11 +139,11 @@ public class RuleEngine {
 
     public String getBestCard() {
         if (revolutionActive && reverseActive) {
-            return Card.RANK_ORDER.getLast();
+            return Card.RANK_ORDER.get(Card.RANK_ORDER.size() - 1);
         } else if(revolutionActive || reverseActive) {
-            return Card.RANK_ORDER.getFirst();
+            return Card.RANK_ORDER.get(0);
         } else {
-            return Card.RANK_ORDER.getLast();
+            return Card.RANK_ORDER.get(Card.RANK_ORDER.size() - 1);
         }
     }
 
@@ -160,7 +160,7 @@ public class RuleEngine {
     }
 
     public boolean canActivateSpecialRule(List<Card> combinaison, RuleType ruleType) {
-        return this.isValidMove(combinaison.getFirst(), ruleType);
+        return this.isValidMove(combinaison.get(0), ruleType);
     }
 
     public Long getId() {

@@ -31,6 +31,7 @@ public class SecurityConfig {
                         .requestMatchers("/api/games/**").permitAll() // Games routes require authentication
                         .requestMatchers("/api/users/**").permitAll() // Users routes require authentication
                         .requestMatchers("/ws/**").permitAll() // WebSocket routes require authentication
+                        .requestMatchers("/actuator/**").permitAll() // Autoriser les endpoints actuator
                         .anyRequest().denyAll()) // Deny all other routes by default
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .addFilterBefore(jwtRequestFilter, UsernamePasswordAuthenticationFilter.class);

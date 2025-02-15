@@ -48,16 +48,16 @@ public class HardAI implements GameAI {
 
     private boolean canActivateRule(Game game, List<Card> cards, boolean canTriggerSuite, boolean canTriggerReverse) {
         if (canTriggerSuite) {
-            return game.getRuleEngine().isValidMove(cards.getFirst(), RuleType.SUITE);
+            return game.getRuleEngine().isValidMove(cards.get(0), RuleType.SUITE);
         }
         if (canTriggerReverse) {
-            return game.getRuleEngine().isValidMove(cards.getFirst(), RuleType.REVERSE);
+            return game.getRuleEngine().isValidMove(cards.get(0), RuleType.REVERSE);
         }
         return false;
     }
 
     private List<Card> findBestMove(List<List<Card>> playableCards) {
         playableCards.sort((c1, c2) -> Integer.compare(c2.size(), c1.size()));
-        return playableCards.getFirst();
+        return playableCards.get(0);
     }
 }

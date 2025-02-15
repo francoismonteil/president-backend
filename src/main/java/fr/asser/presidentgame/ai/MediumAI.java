@@ -16,9 +16,9 @@ public class MediumAI implements GameAI {
         }
 
         // Trier la main par ordre croissant
-        playableCards.sort(Comparator.comparingInt(combinaison -> Card.RANK_ORDER.indexOf(combinaison.getFirst().getRank())));
+        playableCards.sort(Comparator.comparingInt(combinaison -> Card.RANK_ORDER.indexOf(combinaison.get(0).getRank())));
 
-        List<Card> lowestCombinaision = playableCards.getFirst();
+        List<Card> lowestCombinaision = playableCards.get(0);
         if (game.isValidMove(lowestCombinaision)) {
             return new AITurn(lowestCombinaision, false);
         } else {
