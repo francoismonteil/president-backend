@@ -77,34 +77,40 @@ class GameWebSocketIntegrationTest {
     void testFloodMessages() throws Exception {
         StompSession stompSession = connectStompSession();
 
-        // S'abonner
-        BlockingQueue<String> blockingQueue = new LinkedBlockingDeque<>();
+        // S'abonner à /topic/game/ping et enregistrer les messages reçus
+        BlockingQueue<String> messageQueue = new LinkedBlockingDeque<>();
         stompSession.subscribe("/topic/game/ping", new StompFrameHandler() {
             @Override
             public Type getPayloadType(StompHeaders headers) {
                 return String.class;
             }
-
             @Override
             public void handleFrame(StompHeaders headers, Object payload) {
-                blockingQueue.offer((String) payload);
+                messageQueue.offer((String) payload);
             }
         });
 
-        // Envoyer plusieurs messages rapidement
-        for (int i = 0; i < 100; i++) {
+        // Attendre que l'abonnement soit bien établi
+        Thread.sleep(1000);
+
+        // Envoyer 100 messages en rafale
+        int expectedCount = 100;
+        for (int i = 0; i < expectedCount; i++) {
             stompSession.send("/app/game/ping", "ping");
         }
 
-        // Vérifier que tous les messages sont correctement reçus
-        int count = 0;
-        for (int i = 0; i < 100; i++) {
-            String receivedMessage = blockingQueue.poll(1, TimeUnit.SECONDS);
-            if ("ping".equals(receivedMessage)) {
-                count++;
+        // Attendre que tous les messages soient reçus, avec un timeout global
+        int receivedCount = 0;
+        long timeoutMillis = 10000;
+        long endTime = System.currentTimeMillis() + timeoutMillis;
+        while (System.currentTimeMillis() < endTime && receivedCount < expectedCount) {
+            String msg = messageQueue.poll(1, TimeUnit.SECONDS);
+            if ("ping".equals(msg)) {
+                receivedCount++;
             }
         }
-        assertEquals(100, count, "Tous les messages n'ont pas été reçus.");
+
+        assertEquals(expectedCount, receivedCount, "Tous les messages n'ont pas été reçus.");
     }
 
     private StompSession connectStompSession() throws Exception {
