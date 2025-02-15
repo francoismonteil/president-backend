@@ -68,11 +68,16 @@ class GameWebSocketIntegrationTest {
     void testInvalidDestination() throws Exception {
         StompSession stompSession = connectStompSession();
 
+        // S'abonner à la destination correcte pour vérifier qu'aucun message n'est reçu pour une destination invalide
         BlockingQueue<String> messageQueue = subscribeAndReturnQueue(stompSession, "/topic/game/ping");
 
-        // Envoi vers une destination invalide
+        // Attendre que l'abonnement soit établi
+        Thread.sleep(1000);
+
+        // Envoyer un message vers une destination invalide
         stompSession.send("/app/game/invalid", "test");
 
+        // Vérifier qu'aucun message n'est reçu
         String receivedMessage = messageQueue.poll(1, TimeUnit.SECONDS);
         assertNull(receivedMessage, "Un message a été reçu sur une destination invalide.");
     }
