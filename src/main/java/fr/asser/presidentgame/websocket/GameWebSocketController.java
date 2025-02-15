@@ -40,7 +40,10 @@ public class GameWebSocketController {
     @MessageMapping("/game/ping")
     @SendTo("/topic/game/ping")
     public String handlePing(String message) {
-        System.out.println("Received ping: " + message);
-        return message; // Retourne le message pour le client
+        // Si le message est mal formé (par exemple, commence par '{'), on l'ignore en renvoyant null
+        if (message != null && message.trim().startsWith("{")) {
+            return null;
+        }
+        return message;
     }
 }

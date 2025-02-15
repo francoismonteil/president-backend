@@ -53,11 +53,15 @@ class GameWebSocketIntegrationTest {
         // S'abonner
         BlockingQueue<String> messageQueue = subscribeAndReturnQueue(stompSession, "/topic/game/ping");
 
+        // Attendre un peu pour que l'abonnement soit bien établi
+        Thread.sleep(1000);
+
         // Envoyer un message mal formé
         stompSession.send("/app/game/ping", "{invalidJson}");
 
+        // On s'attend à ne rien recevoir (null) car le message est mal formé
         String receivedMessage = messageQueue.poll(1, TimeUnit.SECONDS);
-        assertEquals("{invalidJson}", receivedMessage, "Un message a été reçu malgré un format invalide.");
+        assertNull(receivedMessage, "Aucun message ne devrait être renvoyé pour un message mal formé.");
     }
 
     @Test
