@@ -10,37 +10,44 @@ import org.springframework.messaging.simp.stomp.StompFrameHandler;
 import org.springframework.messaging.simp.stomp.StompHeaders;
 import org.springframework.messaging.simp.stomp.StompSession;
 import org.springframework.messaging.simp.stomp.StompSessionHandlerAdapter;
-import org.springframework.web.socket.client.WebSocketClient;
 import org.springframework.web.socket.client.standard.StandardWebSocketClient;
 import org.springframework.web.socket.messaging.WebSocketStompClient;
+import org.springframework.web.socket.sockjs.client.SockJsClient;
+import org.springframework.web.socket.sockjs.client.Transport;
+import org.springframework.web.socket.sockjs.client.WebSocketTransport;
 
 import java.lang.reflect.Type;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingDeque;
 import java.util.concurrent.TimeUnit;
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
-public class GameWebSocketIntegrationTest {
+class GameWebSocketIntegrationTest {
     @LocalServerPort
     private int port; // Injecté automatiquement
 
     @Test
-    public void testPingMessage() throws Exception {
+    void testPingMessage() throws Exception {
         StompSession stompSession = connectStompSession();
 
         // S'abonner
         BlockingQueue<String> messageQueue = subscribeAndReturnQueue(stompSession, "/topic/game/ping");
 
+        // Attendre que l'abonnement soit bien établi
+        Thread.sleep(500);
+
         // Envoyer un message
         stompSession.send("/app/game/ping", "ping");
 
         // Vérifier la réponse
-        String receivedMessage = messageQueue.poll(1, TimeUnit.SECONDS);
+        String receivedMessage = messageQueue.poll(5, TimeUnit.SECONDS);
         assertEquals("ping", receivedMessage);
     }
 
     @Test
-    public void testMalformedMessage() throws Exception {
+    void testMalformedMessage() throws Exception {
         StompSession stompSession = connectStompSession();
 
         // S'abonner
@@ -50,11 +57,11 @@ public class GameWebSocketIntegrationTest {
         stompSession.send("/app/game/ping", "{invalidJson}");
 
         String receivedMessage = messageQueue.poll(1, TimeUnit.SECONDS);
-        assertEquals(receivedMessage, "{invalidJson}", "Un message a été reçu malgré un format invalide.");
+        assertEquals("{invalidJson}", receivedMessage, "Un message a été reçu malgré un format invalide.");
     }
 
     @Test
-    public void testInvalidDestination() throws Exception {
+    void testInvalidDestination() throws Exception {
         StompSession stompSession = connectStompSession();
 
         BlockingQueue<String> messageQueue = subscribeAndReturnQueue(stompSession, "/topic/game/ping");
@@ -67,7 +74,7 @@ public class GameWebSocketIntegrationTest {
     }
 
     @Test
-    public void testFloodMessages() throws Exception {
+    void testFloodMessages() throws Exception {
         StompSession stompSession = connectStompSession();
 
         // S'abonner
@@ -100,13 +107,17 @@ public class GameWebSocketIntegrationTest {
         assertEquals(100, count, "Tous les messages n'ont pas été reçus.");
     }
 
-
     private StompSession connectStompSession() throws Exception {
-        WebSocketClient webSocketClient = new StandardWebSocketClient();
-        WebSocketStompClient stompClient = new WebSocketStompClient(webSocketClient);
+        List<Transport> transports = new ArrayList<>();
+        transports.add(new WebSocketTransport(new StandardWebSocketClient()));
+        SockJsClient sockJsClient = new SockJsClient(transports);
+
+        WebSocketStompClient stompClient = new WebSocketStompClient(sockJsClient);
         stompClient.setMessageConverter(new StringMessageConverter());
+
         String url = String.format("ws://localhost:%d/ws", port);
-        return stompClient.connect(url, new StompSessionHandlerAdapter() {}).get();
+        StompHeaders headers = new StompHeaders(); // Aucun header spécifique, mais nécessaire pour l'appel
+        return stompClient.connect(url, new StompSessionHandlerAdapter() {}, headers).get();
     }
 
     private BlockingQueue<String> subscribeAndReturnQueue(StompSession session, String destination) {
