@@ -130,8 +130,10 @@ class GameWebSocketIntegrationTest {
         WebSocketStompClient stompClient = new WebSocketStompClient(sockJsClient);
         stompClient.setMessageConverter(new StringMessageConverter());
 
-        String url = String.format("ws://localhost:%d/ws", port);
-        StompHeaders headers = new StompHeaders(); // Aucun header spécifique, mais nécessaire pour l'appel
+        // Le token est transmis via l'URL afin d'être récupéré par le JwtHandshakeInterceptor
+        String token = "dummy-token";
+        String url = String.format("ws://localhost:%d/ws?token=%s", port, token);
+        StompHeaders headers = new StompHeaders();
         return stompClient.connect(url, new StompSessionHandlerAdapter() {}, headers).get();
     }
 
