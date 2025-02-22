@@ -3,6 +3,7 @@ package fr.asser.presidentgame.service;
 import fr.asser.presidentgame.dto.PlayerSetup;
 import fr.asser.presidentgame.exception.InvalidMoveException;
 import fr.asser.presidentgame.exception.NotPlayersTurnException;
+import fr.asser.presidentgame.mapper.GameMapper;
 import fr.asser.presidentgame.model.*;
 import fr.asser.presidentgame.repository.AppUserRepository;
 import fr.asser.presidentgame.repository.GameLogRepository;
@@ -29,6 +30,7 @@ class GameServiceTest {
     private AppUserRepository appUserRepository;
     private SimpMessagingTemplate messagingTemplate;
     private GameLogRepository gameLogRepository;
+    private GameMapper gameMapper;
 
     @BeforeEach
     void setUp() {
@@ -36,7 +38,8 @@ class GameServiceTest {
         appUserRepository = mock(AppUserRepository.class);
         messagingTemplate = mock(SimpMessagingTemplate.class);
         gameLogRepository = mock(GameLogRepository.class);
-        gameService = new GameService(gameRepository, gameLogRepository, appUserRepository, messagingTemplate);  // Injecter le mock
+        gameMapper = mock(GameMapper.class);
+        gameService = new GameService(gameRepository, gameLogRepository, appUserRepository, messagingTemplate, gameMapper);  // Injecter le mock
 
         // Simuler un utilisateur authentifié
         var userDetails = User.withUsername("admin")

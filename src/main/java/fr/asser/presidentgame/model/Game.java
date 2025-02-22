@@ -680,6 +680,10 @@ public class Game {
         player.setGame(this);
     }
 
+    public boolean isPlayerInGame(String username) {
+        return players.stream().anyMatch(player -> player.getName().equals(username));
+    }
+
     public Set<Card> getDeck() {
         return deck;
     }

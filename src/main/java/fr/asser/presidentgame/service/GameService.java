@@ -2,13 +2,16 @@ package fr.asser.presidentgame.service;
 
 import fr.asser.presidentgame.ai.AITurn;
 import fr.asser.presidentgame.ai.AIType;
+import fr.asser.presidentgame.dto.GameStateDTO;
 import fr.asser.presidentgame.dto.PlayerSetup;
 import fr.asser.presidentgame.exception.GameNotFoundException;
+import fr.asser.presidentgame.mapper.GameMapper;
 import fr.asser.presidentgame.model.*;
 import fr.asser.presidentgame.repository.AppUserRepository;
 import fr.asser.presidentgame.repository.GameLogRepository;
 import fr.asser.presidentgame.repository.GameRepository;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
@@ -24,12 +27,16 @@ public class GameService {
     private final GameLogRepository gameLogRepository;
     private final AppUserRepository userRepository;
     private final SimpMessagingTemplate messagingTemplate;
+    private final GameMapper gameMapper;
 
-    public GameService(GameRepository gameRepository, GameLogRepository gameLogRepository, AppUserRepository userRepository, SimpMessagingTemplate messagingTemplate) {
+    public GameService(GameRepository gameRepository, GameLogRepository gameLogRepository,
+                       AppUserRepository userRepository, SimpMessagingTemplate messagingTemplate,
+                       GameMapper gameMapper) {
         this.gameRepository = gameRepository;
         this.gameLogRepository = gameLogRepository;
         this.userRepository = userRepository;
         this.messagingTemplate = messagingTemplate;
+        this.gameMapper = gameMapper;
     }
 
     String generateJoinCode() {
@@ -77,6 +84,16 @@ public class GameService {
         game.orderPlayers();
 
         return game;
+    }
+
+    public GameStateDTO getFilteredGameState(Long gameId, String username) {
+        Game game = getGame(gameId);
+        // Vérifier que l'utilisateur fait bien partie de la partie
+        if (!game.isPlayerInGame(username)) {
+            throw new AccessDeniedException("User not part of the game");
+        }
+        // Convertir l'objet Game en GameStateDTO en filtrant la main des autres joueurs
+        return gameMapper.toGameStateDTO(game, username);
     }
 
     public Game startGame(Long id) {

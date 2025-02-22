@@ -1,11 +1,13 @@
 package fr.asser.presidentgame.websocket;
 
 import fr.asser.presidentgame.dto.GameAction;
+import fr.asser.presidentgame.dto.GameStateDTO;
 import fr.asser.presidentgame.model.Game;
 import fr.asser.presidentgame.service.GameService;
 import org.springframework.messaging.handler.annotation.MessageMapping;
 import org.springframework.messaging.handler.annotation.SendTo;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
+import org.springframework.messaging.simp.annotation.SendToUser;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Controller;
 
@@ -55,4 +57,14 @@ public class GameWebSocketController {
         }
         return message;
     }
+
+    @MessageMapping("/game/getState")
+    @SendToUser("/queue/gameState")
+    public GameStateDTO getGameState(GameAction request, Principal principal) {
+        if (principal == null) {
+            throw new AccessDeniedException("User not authenticated");
+        }
+        return gameService.getFilteredGameState(request.getGameId(), principal.getName());
+    }
+
 }
