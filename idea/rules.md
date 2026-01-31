@@ -212,6 +212,7 @@ Pour activer la suite, il doit :
 * jouer une ou plusieurs cartes directement consécutives à celles jouées par le premier joueur, selon l’ordre hiérarchique en cours (normal ou inversé) ;
 * exprimer explicitement sa volonté d’activer une suite (via un bouton dédié en ligne ou verbalement).
 
+En cas de révolution, la Suite se comporte comme un Reverse (voir 4.7).
 #### Effet de la Suite
 Une fois la suite activée, les joueurs suivants doivent obligatoirement jouer des cartes directement consécutives à la dernière carte posée, en respectant :
 * le nombre de cartes jouées (simple, paire, etc.)
@@ -252,6 +253,7 @@ Pour activer le reverse, il doit :
 * jouer une ou plusieurs cartes directement inversement consécutives à celles jouées par le premier joueur, selon l’ordre hiérarchique en cours
 * exprimer explicitement sa volonté d’activer un reverse.
 
+En cas de révolution, le Reverse se comporte comme une Suite (voir 4.7).
 #### Effet du Reverse
 Une fois le reverse activé, les joueurs suivants doivent jouer des cartes inversement consécutives à la dernière carte posée, en respectant :
 * le nombre de cartes jouées (simple, paire, etc.)
@@ -367,8 +369,11 @@ Ainsi :
 * L'ordre inversé reste en place pour le reste de la manche, sauf si une contre-révolution est déclenchée.
 
 **Effet sur les Autres Règles Spéciales :**
-* Suite : La suite suit l’ordre inversé (ex. après un 6, le joueur doit jouer un 5).
-* Reverse : Le reverse peut inverser temporairement l’ordre, mais respecte l’inversion globale de la révolution.
+* Suite et Reverse : En cas de révolution, les comportements de la Suite et du Reverse sont inversés :
+  * la Suite se comporte comme un Reverse (progression décroissante selon l’ordre hiérarchique en vigueur).
+  * le Reverse se comporte comme une Suite (progression croissante selon l’ordre hiérarchique en vigueur).
+
+**Exemple** : en révolution, si une Suite est active et que la dernière carte jouée est un 6, la carte suivante attendue est un 5.
 
 **Contre-Révolution :**
 * Un autre carré peut être joué, lors d'un autre pli, pour rétablir l’ordre normal des cartes.
@@ -400,18 +405,17 @@ Cette section précise les interactions possibles entre les règles spéciales, 
 
 #### Effet de la Révolution sur les Autres Règles
 * Suite et Reverse
-  * La révolution modifie l’ordre hiérarchique utilisé pour déterminer les cartes consécutives.
-  * Les règles de suite et de reverse continuent de s’appliquer normalement selon cet ordre inversé.
+  * En cas de révolution, les comportements de la Suite et du Reverse sont inversés (voir 4.7).
 * Ou-Rien
   * La révolution n’a aucun effet sur le Ou-Rien.
   * Le Ou-Rien est basé exclusivement sur l’égalité de rang, indépendamment de l’ordre hiérarchique.
 
-#### Tableau récapitulatif
+#### Tableau récapitulatif (hors effet de swap en révolution, voir 4.7)
 | Règle      | Portée                | Particularités principales                          | 
 |:-----------|:----------------------|:----------------------------------------------------|
 | Révolution | Toute la manche       | Inverse la hiérarchie globale                       |
-| Reverse    | Pli en cours          | Consécutivité croissante selon l’ordre en vigueur   |
-| Suite      | Pli en cours          | Consécutivité décroissante selon l’ordre en vigueur |
+| Reverse    | Pli en cours          | Consécutivité décroissante selon l’ordre en vigueur |
+| Suite      | Pli en cours          | Consécutivité croissante selon l’ordre en vigueur   |
 | Ou-Rien    | Jusqu’à désactivation | Contrainte sur un rang précis                       |
 
 ## 5. Exemples de Scénarios
